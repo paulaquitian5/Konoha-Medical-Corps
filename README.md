@@ -1,37 +1,35 @@
-# Estructura de Ramas del Proyecto
+# Project Branch Structure
 
-## Ramas Principales
-**main**: Rama estable lista para producción.
--**Descripción:** Esta es la rama estable y lista para producción. Contiene el código que ha sido probado y validado.
-**Uso:**
--Despliegue de versiones estables.
--Integración de cambios que han pasado por revisiones y pruebas.
-**dev**: Rama de desarrollo para integrar nuevas características.
-- **Descripción:** Esta rama se utiliza para integrar nuevas características y cambios. Es donde se realizan pruebas antes de fusionar en la rama principal.
-**Uso:**
--Desarrollo de nuevas funcionalidades.
--Pruebas de integración de diferentes características.
--Preparación de la próxima versión estable.
+## Main Branches
+**main**: Stable branch ready for production.
+- **Description:** This is the stable and production-ready branch. It contains code that has been tested and validated.
+**Usage:**
+- Deployment of stable releases.
+- Integration of changes that have gone through reviews and testing.
 
-## Ramas de Características
+**dev**: Development branch for integrating new features.
+- **Description:** This branch is used to integrate new features and changes. It is where testing is done before merging into the main branch.
+**Usage:**
+- Development of new functionalities.
+- Integration testing of different features.
+- Preparation of the next stable release.
 
-- **feature/nombre-caracteristica**: Ramas para el desarrollo de nuevas funcionalidades.
-- **Descripción:** Estas ramas se crean para desarrollar nuevas características específicas. Cada característica debe tener su propia rama.
-**Uso:**
-- Desarrollar y probar nuevas funcionalidades de manera aislada.
-- Facilitar revisiones de código específicas para cada característica.
+## Feature Branches
+- **feature/feature-name**: Branches for developing new features.
+- **Description:** These branches are created to develop specific new features. Each feature should have its own branch.
+**Usage:**
+- Develop and test new functionalities in isolation.
+- Facilitate specific code reviews for each feature.
 
-## Ramas de Corrección de Errores
+## Bugfix Branches
+- **bugfix/bug-name**: Branches for fixing bugs.
+- **Description:** These are used to fix bugs in the development branch or the main branch.
+**Usage:**
+- Address critical issues detected in production or the testing phase.
 
-- **bugfix/nombre-error**: Ramas para corregir errores.
-- **Descripción:** Se utilizan para corregir errores en la rama de desarrollo o en   la rama principal.
-Uso:
-  Abordar problemas críticos detectados en producción o en la fase de prueba.
-
-## Ramas de Lanzamiento
-
-- **release/nombre-version**: Ramas para preparar nuevas versiones.
-- **Descripción:** Estas ramas se crean para preparar una nueva versión para producción. Se utilizan para realizar pruebas finales y correcciones.
-**Uso:**
-- Estabilización del código antes de fusionar en la rama principal.
-- Documentación y preparación de notas de lanzamiento.
+## Release Branches
+- **release/version-name**: Branches for preparing new releases.
+- **Description:** These branches are created to prepare a new version for production. They are used for final testing and corrections.
+**Usage:**
+- Stabilization of the code before merging into the main branch.
+- Documentation and preparation of release notes.
