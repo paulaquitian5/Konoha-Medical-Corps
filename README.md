@@ -1,18 +1,35 @@
-# Estructura de Ramas del Proyecto
+# Project Branch Structure
 
-## Ramas Principales
+## Main Branches
+**main**: Stable branch ready for production.
+- **Description:** This is the stable and production-ready branch. It contains code that has been tested and validated.
+**Usage:**
+- Deployment of stable releases.
+- Integration of changes that have gone through reviews and testing.
 
-- **main**: Rama estable lista para producción.
-- **dev**: Rama de desarrollo para integrar nuevas características.
+**dev**: Development branch for integrating new features.
+- **Description:** This branch is used to integrate new features and changes. It is where testing is done before merging into the main branch.
+**Usage:**
+- Development of new functionalities.
+- Integration testing of different features.
+- Preparation of the next stable release.
 
-## Ramas de Características
+## Feature Branches
+- **feature/feature-name**: Branches for developing new features.
+- **Description:** These branches are created to develop specific new features. Each feature should have its own branch.
+**Usage:**
+- Develop and test new functionalities in isolation.
+- Facilitate specific code reviews for each feature.
 
-- **feature/nombre-caracteristica**: Ramas para el desarrollo de nuevas funcionalidades.
+## Bugfix Branches
+- **bugfix/bug-name**: Branches for fixing bugs.
+- **Description:** These are used to fix bugs in the development branch or the main branch.
+**Usage:**
+- Address critical issues detected in production or the testing phase.
 
-## Ramas de Corrección de Errores
-
-- **bugfix/nombre-error**: Ramas para corregir errores.
-
-## Ramas de Lanzamiento
-
-- **release/nombre-version**: Ramas para preparar nuevas versiones.
+## Release Branches
+- **release/version-name**: Branches for preparing new releases.
+- **Description:** These branches are created to prepare a new version for production. They are used for final testing and corrections.
+**Usage:**
+- Stabilization of the code before merging into the main branch.
+- Documentation and preparation of release notes.
