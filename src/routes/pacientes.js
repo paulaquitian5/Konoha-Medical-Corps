@@ -1,6 +1,6 @@
 const express = require("express");
 const router = express.Router();
-const Paciente = require("../models/pacientesModels");
+const Paciente = require("../models/pacienteModels");
 
 // ============================
 // 🩺 GESTIÓN DE PACIENTES SHINOBI

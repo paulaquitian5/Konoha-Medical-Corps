@@ -1,10 +1,15 @@
 const express = require('express');
 const mongoose = require('mongoose');
+const http = require("http");
+const { Server } = require("socket.io");
 const cors = require('cors');
 const path = require('path');
 
-
 const app = express();
+const server = http.createServer(app); // <-- Crea el servidor HTTP base
+const io = new Server(server, {
+  cors: { origin: "*" } // <-- Permite conexión desde cualquier cliente
+});
 const port = 3000;
 
 // ==========================
@@ -19,10 +24,32 @@ app.use(express.json());
 // ==========================
 
 const pacientesRoutes = require('./routes/pacientes'); 
+const telemedicinaRoutes = require('./routes/telemedicina');
+const diagnosticoRoutes = require('./routes/diagnostico');
 
 require('dotenv').config();
 
 app.use('/api/pacientes', pacientesRoutes); 
+app.use('/api/telemedicina', telemedicinaRoutes(io));
+app.use('/api/diagnostico', diagnosticoRoutes);
+
+// ==========================
+// 🟢 WebSocket
+// ==========================
+
+io.on("connection", (socket) => {
+  console.log("🟢 Nuevo cliente conectado:", socket.id);
+
+  // Un médico o ninja se une a una sala (por missionId)
+  socket.on("join_mission", (missionId) => {
+    socket.join(missionId);
+    console.log(`⚔️ Usuario ${socket.id} se unió a la misión ${missionId}`);
+  });
+
+  socket.on("disconnect", () => {
+    console.log("🔴 Cliente desconectado:", socket.id);
+  });
+});
 
 // ==========================
 // 🌐 Ruta general del cliente (frontend)
