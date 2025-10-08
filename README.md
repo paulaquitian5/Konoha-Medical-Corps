@@ -69,47 +69,52 @@ npm test
   - Valida el correcto funcionamiento del código.
   - Garantiza la estabilidad de la integración y la implementación. 
 
-## Project Branch Structure
+## Estructura de la rama del proyecto
 
-### Main Branches
-**main**: Stable branch ready for production.  
-- **Description:** This is the stable and production-ready branch. It contains code that has been tested and validated.  
-- **Usage:**  
-  - Deployment of stable releases.  
-  - Integration of changes that have gone through reviews and testing.  
+### Ramas principales
+**main**: Rama estable lista para producción.
+- **Descripción:** Esta es la rama estable y lista para producción. Contiene código probado y validado.
+- **Uso:**
+  - Implementación de versiones estables.
+  - Integración de cambios que han pasado por revisiones y pruebas.
 
-**dev**: Development branch for integrating new features.  
-- **Description:** This branch is used to integrate new features and changes. It is where testing is done before merging into the main branch.  
-- **Usage:**  
-  - Development of new functionalities.  
-  - Integration testing of different features.  
-  - Preparation of the next stable release.  
+**dev**: Rama de desarrollo para integrar nuevas funcionalidades.
+- **Descripción:** Esta rama se utiliza para integrar nuevas funcionalidades y cambios. Es donde se realizan las pruebas antes de la fusión con la rama principal.
+- **Uso:**
+  - Desarrollo de nuevas funcionalidades.
+  - Pruebas de integración de diferentes funcionalidades.
+  - Preparación de la próxima versión estable.
 
-### Feature Branches
-**feature/feature-name**: Branches for developing new features.  
-- **Description:** These branches are created to develop specific new features. Each feature should have its own branch.  
-- **Usage:**  
-  - Develop and test new functionalities in isolation.  
-  - Facilitate specific code reviews for each feature.  
+### Ramas de características
+**feature/feature-name**: Ramas para el desarrollo de nuevas funcionalidades.
+- **Descripción:** Estas ramas se crean para desarrollar nuevas funcionalidades específicas. Cada funcionalidad debe tener su propia rama. 
+- **Uso:**
+  - Desarrollar y probar nuevas funcionalidades de forma aislada.
+  - Facilitar revisiones de código específicas para cada característica.
 
-### Bugfix Branches
-**bugfix/bug-name**: Branches for fixing bugs.  
-- **Description:** These are used to fix bugs found in the development branch or the main branch.  
-- **Usage:**  
-  - Address critical issues detected in production or during testing.  
-  - Apply fixes quickly and merge back to dev and main as required.  
+### Ramas de corrección de errores
+**bugfix/bug-name**: Ramas para corregir errores.
+- **Descripción:** Se utilizan para corregir errores encontrados en la rama de desarrollo o en la rama principal.
+- **Uso:**
+  - Abordar problemas críticos detectados en producción o durante las pruebas.
+  - Aplicar correcciones rápidamente y volver a integrar con los entornos de desarrollo y principal según sea necesario.
 
-### Release Branches
-**release/version-name**: Branches for preparing new releases.  
-- **Description:** These branches are created to prepare a new version for production. They are used for final testing, polishing, and minor fixes.  
-- **Usage:**  
-  - Stabilization of the code before merging into the main branch.  
-  - Preparation of release notes and final QA.
-  
-🧩 Estructura de la sucursal
-Rama	Objetivo
-principal	Rama estable para producción.
-desarrollador	Rama de desarrollo activo.
-característica/	Desarrollo de nuevas funcionalidades (por ejemplo, feature/farmacia).
-corrección de errores/	Corrección de errores identificados.
-liberar/	Preparando nuevas versiones estables.
+### Ramas de lanzamiento
+**release/version-name**: Ramas para preparar nuevas versiones.
+
+- **Descripción:** Estas ramas se crean para preparar una nueva versión para producción. Se utilizan para pruebas finales, pulido y correcciones menores.
+- **Uso:**
+  - Estabilización del código antes de fusionarlo con la rama principal.
+  - Elaboración de notas de lanzamiento y control de calidad final.
+
+###  Tecnologías utilizadas
+
+| Categoría | Tecnología | Objetivo |
+|------------|-------------|-----------|
+| Servidor | **Node.js + Express** | API REST y servidor HTTP |
+| Base de datos | **MongoDB Atlas (Mongoose)** | Persistencia de los registros médicos |
+| Comunicación en tiempo real | **Socket.IO** | Telemedicina y actualizaciones de emergencia |
+| Autenticación | **JWT (jsonwebtoken)** | Acceso seguro para médicos |
+| Configuración del entorno | **dotenv** | Gestión de variables ambientales |
+| Utilidades | **uuid, bcryptjs** | Identificadores únicos y seguridad |
+| Despliegue | **PM2 / GitHub Actions** | Automatización y monitoreo en producción |
