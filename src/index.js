@@ -26,12 +26,13 @@ app.use(express.json());
 const pacientesRoutes = require('./routes/pacientes'); 
 const telemedicinaRoutes = require('./routes/telemedicina');
 const diagnosticoRoutes = require('./routes/diagnostico');
-
+const emergenciaRoutes = require('./routes/emergencia');
 require('dotenv').config();
 
 app.use('/api/pacientes', pacientesRoutes); 
 app.use('/api/telemedicina', telemedicinaRoutes(io));
 app.use('/api/diagnostico', diagnosticoRoutes);
+app.use('/api/emergencia', emergenciaRoutes(io));
 
 // ==========================
 // 🟢 WebSocket
