@@ -3,7 +3,7 @@ const router = express.Router();
 const mongoose = require("mongoose");
 
 const Paciente = require("../models/pacienteModels");
-const diagnostico = require("../models/diagnosticoModels");
+const Diagnostico = require("../models/diagnosticoModels");
 
 /**
  * analyzeChakra(chakra)
@@ -37,7 +37,7 @@ function analyzeChakra(chakra) {
 
   // Regla: riesgo crítico
   if ((variabilidad !== null && variabilidad >= 85) ||
-      (temperatura !== null && (temperatura < 30 || temperatura > 45))) {
+    (temperatura !== null && (temperatura < 30 || temperatura > 45))) {
     result.result = "riesgo_critico";
     result.confidence = 0.92;
     result.explanation = "Variabilidad o temperatura fuera de rangos seguros — riesgo crítico.";
@@ -72,126 +72,104 @@ function analyzeChakra(chakra) {
  * Body: { patientId, chakra: { tipo, capacidad, fluctuacion, metrics } }
  * -> Analiza y guarda un diagnóstico
  */
-router.post("/", async (req, res) => {
+router.post('/', async (req, res) => {
   try {
-    const { patientId, chakra, origin } = req.body;
+    const { patientId, chakra, result, explanation, confidence, origin } = req.body;
 
-    if (!patientId) {
-      return res.status(400).json({ exito: false, mensaje: "Falta patientId en el body" });
+    // Validar datos mínimos
+    if (!patientId || !chakra) {
+      return res.status(400).json({
+        exito: false,
+        mensaje: 'Faltan datos obligatorios: patientId o chakra'
+      });
     }
 
-    if (!mongoose.Types.ObjectId.isValid(patientId)) {
-      return res.status(400).json({ exito: false, mensaje: "patientId inválido" });
-    }
-
-    const paciente = await Paciente.findById(patientId).select("_id nombre apellido");
-    if (!paciente) {
-      return res.status(404).json({ exito: false, mensaje: "Paciente no encontrado" });
-    }
-
-    // Ejecutar análisis (aquí: heurística; reemplazar por ML si se desea)
-    const analysis = analyzeChakra(chakra);
-
-    // Crear y guardar diagnóstico
-    const diagnostic = new Diagnostic({
+    // Crear el nuevo diagnóstico
+    const nuevoDiagnostico = new Diagnostico({
       patientId,
       chakra,
-      result: analysis.result,
-      explanation: analysis.explanation,
-      confidence: analysis.confidence,
-      origin: origin === "manual" ? "manual" : "auto"
+      result: result || 'indeterminado',
+      explanation: explanation || '',
+      confidence: confidence || 0,
+      origin: origin || 'auto'
     });
 
-    const saved = await diagnostic.save();
+    // Guardar en la base de datos
+    const diagnosticoGuardado = await nuevoDiagnostico.save();
 
-    return res.status(201).json({
+    res.status(201).json({
       exito: true,
-      mensaje: "Diagnóstico generado y guardado",
-      data: saved
+      mensaje: 'Diagnóstico generado correctamente',
+      diagnostico: diagnosticoGuardado
     });
 
   } catch (error) {
-    console.error("Error POST /api/diagnostico:", error);
-    return res.status(500).json({
+    console.error('Error al generar diagnóstico:', error);
+    res.status(500).json({
       exito: false,
-      mensaje: "Error en el servidor al generar diagnóstico",
+      mensaje: 'Error en el servidor al generar diagnóstico',
       error: error.message
     });
   }
 });
+
 
 /**
  * GET /api/diagnostico/:patientId
  * -> Retorna el diagnóstico más reciente del paciente
  */
-router.get("/:patientId", async (req, res) => {
+router.get('/:patientId', async (req, res) => {
   try {
-    const { patientId } = req.params;
+    const diagnosticos = await Diagnostico.find({ patientId: req.params.patientId });
 
-    if (!mongoose.Types.ObjectId.isValid(patientId)) {
-      return res.status(400).json({ exito: false, mensaje: "patientId inválido" });
+    if (!diagnosticos || diagnosticos.length === 0) {
+      return res.status(404).json({
+        exito: false,
+        mensaje: 'No se encontraron diagnósticos para este paciente'
+      });
     }
 
-    // Buscar el diagnóstico más reciente por createdAt
-    const latest = await diagnostico.findOne({ patientId })
-      .sort({ createdAt: -1 })
-      .lean();
-
-    if (!latest) {
-      return res.status(404).json({ exito: false, mensaje: "No se encontraron diagnósticos para este paciente" });
-    }
-
-    return res.json({
+    res.json({
       exito: true,
-      data: latest
+      diagnosticos
     });
-
   } catch (error) {
-    console.error("Error GET /api/diagnostico/:patientId:", error);
-    return res.status(500).json({
+    console.error('Error al obtener diagnósticos:', error);
+    res.status(500).json({
       exito: false,
-      mensaje: "Error en el servidor al obtener diagnóstico",
+      mensaje: 'Error al obtener diagnósticos',
       error: error.message
     });
   }
 });
 
+
 /**
  * DELETE /api/diagnostico/:id
  * -> Elimina un diagnóstico específico por su ID
  */
-router.delete("/:id", async (req, res) => {
+router.delete('/:id', async (req, res) => {
   try {
-    const { id } = req.params;
+    const diagnosticoEliminado = await Diagnostico.findByIdAndDelete(req.params.id);
 
-    if (!mongoose.Types.ObjectId.isValid(id)) {
-      return res.status(400).json({ 
-        exito: false, 
-        mensaje: "ID de diagnóstico inválido" 
+    if (!diagnosticoEliminado) {
+      return res.status(404).json({
+        exito: false,
+        mensaje: 'Diagnóstico no encontrado'
       });
     }
 
-    const diagnostico = await Diagnostico.findById(id);
-    if (!diagnostico) {
-      return res.status(404).json({ 
-        exito: false, 
-        mensaje: "Diagnóstico no encontrado" 
-      });
-    }
-
-    await Diagnostico.findByIdAndDelete(id);
-
-    return res.json({
+    res.json({
       exito: true,
-      mensaje: "Diagnóstico eliminado correctamente",
-      eliminado: { id: id }
+      mensaje: 'Diagnóstico eliminado correctamente',
+      diagnostico: diagnosticoEliminado
     });
 
   } catch (error) {
-    console.error("Error DELETE /api/diagnostics/:id:", error);
-    return res.status(500).json({
+    console.error('Error al eliminar diagnóstico:', error);
+    res.status(500).json({
       exito: false,
-      mensaje: "Error en el servidor al eliminar diagnóstico",
+      mensaje: 'Error en el servidor al eliminar diagnóstico',
       error: error.message
     });
   }

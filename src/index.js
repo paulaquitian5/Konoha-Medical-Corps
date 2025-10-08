@@ -27,12 +27,15 @@ const pacientesRoutes = require('./routes/pacientes');
 const telemedicinaRoutes = require('./routes/telemedicina');
 const diagnosticoRoutes = require('./routes/diagnostico');
 const emergenciaRoutes = require('./routes/emergencia');
+const medicamentosRoutes = require('./routes/medicamentos');
+
 require('dotenv').config();
 
 app.use('/api/pacientes', pacientesRoutes); 
 app.use('/api/telemedicina', telemedicinaRoutes(io));
 app.use('/api/diagnostico', diagnosticoRoutes);
 app.use('/api/emergencia', emergenciaRoutes(io));
+app.use('/api/medicamentos', medicamentosRoutes);
 
 // ==========================
 // 🟢 WebSocket
@@ -55,9 +58,6 @@ io.on("connection", (socket) => {
 // ==========================
 // 🌐 Ruta general del cliente (frontend)
 // ==========================
-app.get(/.*/, (req, res) => {
-  res.sendFile(path.join(__dirname, 'dist/index.html'));
-});
 
 // ==========================
 // ⚙️ Conexión a la base de datos
