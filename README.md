@@ -107,7 +107,7 @@ npm test
   - Estabilización del código antes de fusionarlo con la rama principal.
   - Elaboración de notas de lanzamiento y control de calidad final.
 
-###  Tecnologías utilizadas
+## Tecnologías utilizadas
 
 | Categoría | Tecnología | Objetivo |
 |------------|-------------|-----------|
