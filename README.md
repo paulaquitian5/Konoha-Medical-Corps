@@ -1,59 +1,73 @@
-# Repository and Configuration Instructions
+# Konoha Medical Corps — Repository & Execution Guide
 
 ## Repository
-**Konoha-Medical-Corps**: Public GitHub repository that centralizes the source code, documentation, and CI/CD workflows with GitHub Actions.  
-- **Description:** Contains the entire system code, documentation files, and automated pipelines for testing and deployment.  
-- **Usage:**  
-  - Centralized management of project code.  
-  - Collaboration between development teams.  
-  - Tracking of issues, pull requests, and version control.  
-  - URL: [Konoha-Medical-Corps](https://github.com/sara446/Konoha-Medical-Corps)  
+**Konoha-Medical-Corps**: Sistema médico shinobi que centraliza la gestión de pacientes, diagnósticos automáticos, monitoreo remoto, alertas de emergencia y farmacia digital.
+- **URL del repositorio: **https://github.com/sara446/Konoha-Medical-Corps
+- **Propósito:**  
+  - Centralizar el código fuente y documentación.
+  - Gestionar ramas de desarrollo y despliegue.
+  - Automatizar pruebas y despliegues mediante CI/CD. 
 
-## Configuration Instructions
+## Instrucciones de configuración
 
-**Step 1. Clone the repository**  
+**Paso 1. Clonar el repositorio**  
 ```bash
 git clone https://github.com/sara446/Konoha-Medical-Corps.git
 cd Konoha-Medical-Corps
 ```
-- **Description:** Downloads the project repository locally and enters the folder.
-- **Usage:**  
-  - Access to project files.  
-  - Ability to make changes and execute locally.  
+- **Descripción:** Descarga el repositorio del proyecto y te posiciona dentro de la carpeta del proyecto.
+- **Uso:**  
+  - Acceda a todo el código fuente y los archivos del proyecto.
+  - Prepárese para instalar y ejecutar el sistema localmente.
 
-**Step 2. Install dependencies**  
+**Paso 2. Instalar dependencias**  
 ```bash
 npm install
 ```
-- **Description:** Installs all Node.js dependencies required for the project.
-- **Usage:**  
-  - Prepare the environment to run the application.  
+Además, instale Socket.IO (para comunicación en tiempo real a través de WebSockets):
 
-**Step 3. Configure the MongoDB database**  
-```env
-MONGO_URI=mongodb://localhost:27017/konoha_medical
-```
-- **Description:** The project uses MongoDB as a database manager; an .env file is required with the connection string.
-- **Usage:**  
-  - Define the connection string to the local or cloud database.  
-  - Ensure that the application can persist and query data.  
-
-**Step 4. Run the application**  
 ```bash
-npm start
+npm install socket.io
 ```
-- **Description:** Launches the project in development mode.
-- **Usage:**  
-  - Test the system locally before deploying it.  
+- **Descripción:** Instala todas las dependencias del proyecto, incluidas:
+  - expresar → Servidor HTTP.
+  - conexión mangosta → MongoDB.
+  - cors → Habilita solicitudes de origen cruzado.
+  - dotenv → Administra las variables de entorno.
+  - uuid → Genera identificadores únicos para los registros.
+  - socket.io → Permite la comunicación en tiempo real (telemedicina, alertas).
+- **Uso:**  
+  - prepara el entorno backend completo para ejecutar las API y las funciones WebSocket. 
 
-**Step 5. Automated tests**  
+**Paso 3. Crear y configurar el .env archivo**  
+```env
+MONGODB_URI=mongodb+srv://<USUARIO>:<CONTRASEÑA>@cluster0.vnbiprd.mongodb.net/?retryWrites=true&w=majority&appName=Cluster0
+PORT=3000
+```
+- **Descripción:** Define las variables de entorno necesarias para la conexión a la base de datos (MongoDB Atlas) y la autenticación JWT.
+- **Uso:**  
+  - Reemplace <USUARIO>y <CONTRASEÑA>con sus credenciales de MongoDB Atlas.
+  - Ensure no.env está comprometido con GitHub (debería estar listado en )..gitignore
+
+**Paso 4. Ejecutar la aplicación**  
+```bash
+npm run dev
+```
+- **Resultado esperado:** 
+```bash
+🔥 Servidor Shinobi escuchando en el puerto 3000
+✅ Conexión a MongoDB Atlas exitosa
+
+```
+
+**Paso 5. Pruebas automatizadas**
 ```bash
 npm test
 ```
-- **Description:** Runs the defined tests in the project. Configured in CI/CD to run on every push or pull request.
-- **Usage:**  
-  - Validate that the code works correctly.  
-  - Guarantee integration and deployment stability.  
+- **Descripción:** Ejecuta las pruebas definidas en el proyecto. Configuradas en CI/CD para ejecutarse en cada solicitud push o pull.
+- **Uso:**
+  - Valida el correcto funcionamiento del código.
+  - Garantiza la estabilidad de la integración y la implementación. 
 
 ## Project Branch Structure
 
@@ -91,3 +105,11 @@ npm test
 - **Usage:**  
   - Stabilization of the code before merging into the main branch.  
   - Preparation of release notes and final QA.
+  
+🧩 Estructura de la sucursal
+Rama	Objetivo
+principal	Rama estable para producción.
+desarrollador	Rama de desarrollo activo.
+característica/	Desarrollo de nuevas funcionalidades (por ejemplo, feature/farmacia).
+corrección de errores/	Corrección de errores identificados.
+liberar/	Preparando nuevas versiones estables.
