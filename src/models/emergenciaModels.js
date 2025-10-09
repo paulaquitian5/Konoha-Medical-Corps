@@ -18,7 +18,7 @@ const EmergencySchema = new mongoose.Schema({
   },
   nivel: {
     type: String,
-    enum: ["moderado", "alto", "critico"],
+    enum: ["moderado", "alto", "crítico"],
     default: "moderado"
   },
   descripcion: {

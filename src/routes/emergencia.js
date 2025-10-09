@@ -73,11 +73,11 @@ module.exports = (io) => {
    */
   router.get("/status", async (req, res) => {
     try {
-      const criticos = await Emergency.find({ nivel: "critico", atendido: false })
+      const criticos = await Emergency.find({ nivel: "crítico", atendido: false })
         .populate("patientId", "nombre apellido aldea rango estado")
         .sort({ creadoEn: -1 });
 
-      if (!criticos.length) {
+      if (!criticos.length === 0) {
         return res.status(200).json({
           exito: true,
           mensaje: "No hay pacientes en estado crítico actualmente",
@@ -88,15 +88,15 @@ module.exports = (io) => {
 
       res.json({
         exito: true,
+        mensaje: "Listado de pacientes en emergencia crítica",
         total: criticos.length,
         data: criticos
       });
 
-    } catch (error) {
-      console.error("Error GET /api/emergencia/status:", error);
+   } catch (error) {
       res.status(500).json({
         exito: false,
-        mensaje: "Error al obtener estado de emergencias",
+        mensaje: "Error al consultar el estado de emergencias",
         error: error.message
       });
     }
