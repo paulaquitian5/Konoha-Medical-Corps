@@ -17,9 +17,9 @@ const ChakraSchema = new mongoose.Schema({
     type: String,
     enum: ["Baja", "Normal", "Alta"],
     default: "Normal" },
-  fluctuacion: {
-    type: String,
-    trim: true }
+   estabilidad: {
+    type: Number,
+    default: 1.0 }
 }, { _id: false });
 
 const PacienteSchema = new mongoose.Schema({
