@@ -74,9 +74,8 @@ function analyzeChakra(chakra) {
  */
 router.post('/', async (req, res) => {
   try {
-    const { patientId, chakra, result, explanation, confidence, origin } = req.body;
+    const { patientId, chakra, origin } = req.body;
 
-    // Validar datos mínimos
     if (!patientId || !chakra) {
       return res.status(400).json({
         exito: false,
@@ -84,25 +83,30 @@ router.post('/', async (req, res) => {
       });
     }
 
-    // Crear el nuevo diagnóstico
+    // 🔹 Caso 1: diagnóstico automático
+    let resultData = {};
+    if (!origin || origin === 'auto') {
+      resultData = analyzeChakra(chakra);
+    }
+
+    // 🔹 Caso 2: diagnóstico manual
     const nuevoDiagnostico = new Diagnostico({
       patientId,
       chakra,
-      result: result || 'indeterminado',
-      explanation: explanation || '',
-      confidence: confidence || 0,
+      result: req.body.result || resultData.result,
+      explanation: req.body.explanation || resultData.explanation,
+      confidence: req.body.confidence || resultData.confidence,
       origin: origin || 'auto'
     });
 
-    // Guardar en la base de datos
     const diagnosticoGuardado = await nuevoDiagnostico.save();
-
     res.status(201).json({
       exito: true,
-      mensaje: 'Diagnóstico generado correctamente',
+      mensaje: origin === 'manual'
+        ? 'Diagnóstico manual registrado correctamente'
+        : 'Diagnóstico automático generado correctamente',
       diagnostico: diagnosticoGuardado
     });
-
   } catch (error) {
     console.error('Error al generar diagnóstico:', error);
     res.status(500).json({
@@ -115,22 +119,17 @@ router.post('/', async (req, res) => {
 
 
 /**
- * GET /api/diagnostico/:patientId
- * -> Retorna el diagnóstico más reciente del paciente
+ * ============================================================
+ * GET /api/diagnosticos
+ * -> Lista de todos los diagnósticos registrados
+ * ============================================================
  */
-router.get('/:patientId', async (req, res) => {
+router.get('/', async (req, res) => {
   try {
-    const diagnosticos = await Diagnostico.find({ patientId: req.params.patientId });
-
-    if (!diagnosticos || diagnosticos.length === 0) {
-      return res.status(404).json({
-        exito: false,
-        mensaje: 'No se encontraron diagnósticos para este paciente'
-      });
-    }
-
+    const diagnosticos = await Diagnostico.find().populate('patientId', 'nombre apellido'); // si quieres traer info del paciente
     res.json({
       exito: true,
+      total: diagnosticos.length,
       diagnosticos
     });
   } catch (error) {
@@ -143,6 +142,104 @@ router.get('/:patientId', async (req, res) => {
   }
 });
 
+/**
+ * ============================================================
+ * GET /api/diagnosticos/paciente/:id
+ * -> Devuelve todos los diagnósticos de un paciente específico
+ * ============================================================
+ */
+router.get('/paciente/:id', async (req, res) => {
+  try {
+    const diagnosticos = await Diagnostico.find({ patientId: req.params.id }).sort({ createdAt: -1 });
+
+    if (!diagnosticos.length) {
+      return res.status(404).json({
+        exito: false,
+        mensaje: 'No se encontraron diagnósticos para este paciente'
+      });
+    }
+
+    res.json({
+      exito: true,
+      total: diagnosticos.length,
+      diagnosticos
+    });
+  } catch (error) {
+    console.error('Error al obtener diagnósticos por paciente:', error);
+    res.status(500).json({
+      exito: false,
+      mensaje: 'Error al obtener diagnósticos del paciente',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * ============================================================
+ * GET /api/diagnosticos/paciente/:id/ultimo
+ * -> Muestra el diagnóstico más reciente del paciente
+ * ============================================================
+ */
+router.get('/paciente/:id/ultimo', async (req, res) => {
+  try {
+    const ultimo = await Diagnostico.findOne({ patientId: req.params.id }).sort({ createdAt: -1 });
+
+    if (!ultimo) {
+      return res.status(404).json({
+        exito: false,
+        mensaje: 'No se encontró ningún diagnóstico para este paciente'
+      });
+    }
+
+    res.json({
+      exito: true,
+      diagnostico: ultimo
+    });
+  } catch (error) {
+    console.error('Error al obtener el último diagnóstico:', error);
+    res.status(500).json({
+      exito: false,
+      mensaje: 'Error al obtener el último diagnóstico del paciente',
+      error: error.message
+    });
+  }
+});
+
+/**
+ * ============================================================
+ * PUT /api/diagnosticos/:id
+ * -> Permite editar un diagnóstico existente
+ * ============================================================
+ */
+router.put('/:id', async (req, res) => {
+  try {
+    const diagnosticoActualizado = await Diagnostico.findByIdAndUpdate(
+      req.params.id,
+      req.body,
+      { new: true } // retorna el diagnóstico actualizado
+    );
+
+    if (!diagnosticoActualizado) {
+      return res.status(404).json({
+        exito: false,
+        mensaje: 'Diagnóstico no encontrado'
+      });
+    }
+
+    res.json({
+      exito: true,
+      mensaje: 'Diagnóstico actualizado correctamente',
+      diagnostico: diagnosticoActualizado
+    });
+  } catch (error) {
+    console.error('Error al actualizar diagnóstico:', error);
+    res.status(500).json({
+      exito: false,
+      mensaje: 'Error al actualizar diagnóstico',
+      error: error.message
+    });
+  }
+});
 
 /**
  * DELETE /api/diagnostico/:id

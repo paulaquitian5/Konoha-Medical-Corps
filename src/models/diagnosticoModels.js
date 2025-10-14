@@ -1,11 +1,24 @@
 const mongoose = require("mongoose");
 
 // Subesquema para los datos del chakra
+// Subesquema para los datos del chakra
 const ChakraDataSchema = new mongoose.Schema({
-  nivel: { type: Number, required: true },
-  tipo: { type: String, enum: ['fuego', 'agua', 'tierra', 'viento', 'rayo', 'yin', 'yang'], required: true },
-  estabilidad: { type: Number, default: 1.0 } // 1.0 = estable
+  nivel: { type: Number }, // opcional, por si algún diagnóstico manual lo usa
+  tipo: { 
+    type: String, 
+    enum: ['fuego', 'agua', 'tierra', 'viento', 'rayo', 'yin', 'yang'], 
+    required: true 
+  },
+  capacidad: { type: String, enum: ['baja', 'normal', 'alta'] },
+  fluctuacion: { type: Number },
+  metrics: {
+    potencia: Number,
+    variabilidad: Number,
+    temperatura: Number
+  },
+  estabilidad: { type: Number, default: 1.0 }
 }, { _id: false });
+
 
 // Esquema principal de diagnóstico
 const DiagnosticSchema = new mongoose.Schema({
