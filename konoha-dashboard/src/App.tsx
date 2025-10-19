@@ -6,7 +6,7 @@ import { Button } from './components/ui/button';
 import { Card } from './components/ui/card';
 import { UserPlus, Search, LayoutDashboard } from 'lucide-react';
 
-type ViewType = 'menu' | 'dashboard' | 'registration' | 'consultation';
+export type ViewType = 'menu' | 'dashboard' | 'registration' | 'consultation' | 'history';
 
 export default function App() {
   const [currentView, setCurrentView] = useState<ViewType>('menu');
