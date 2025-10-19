@@ -76,20 +76,20 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
   };
 
   return (
-    <div className="max-w-7xl mx-auto p-4" style={{ backgroundColor: 'var(--background)', color: 'var(--foreground)' }}>
+    <div className="max-w-7xl mx-auto p-4">
       {/* Header */}
-      <Card style={{ backgroundColor: 'var(--card)' }} className="p-6 mb-6">
+      <Card className="p-6 mb-6">
         <div className="flex justify-between items-center">
           <div>
-            <h1 style={{ fontSize: '1.5rem', fontWeight: 'var(--font-weight-medium)' }}>Panel de Control Médico Ninja</h1>
-            <p style={{ fontSize: '0.875rem', opacity: 0.6 }}>Bienvenido/a, {userName}</p>
+            <h1 className="text-2xl font-medium">Panel de Control Médico Ninja</h1>
+            <p className="text-sm text-muted-foreground">Bienvenido/a, {userName}</p>
           </div>
           <div className="flex gap-4 items-center">
-            <Button style={{ borderColor: 'var(--secondary)', color: 'var(--foreground)' }} variant="outline">
+            <Button variant="outline">
               <Bell className="w-4 h-4 mr-2" /> Notificaciones
             </Button>
-            <div style={{ backgroundColor: 'var(--accent)' }} className="w-10 h-10 flex justify-center items-center rounded-full">
-              <span style={{ color: 'var(--destructive)' }}>SH</span>
+            <div className="w-10 h-10 flex justify-center items-center rounded-full bg-accent">
+              <span className="text-destructive">SH</span>
             </div>
           </div>
         </div>
@@ -98,16 +98,16 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
       {/* Estadísticas */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 mb-6">
         {statsData.map((stat, i) => (
-          <Card key={i} style={{ backgroundColor: 'var(--card)' }} className="p-6 hover:shadow-lg transition-shadow">
+          <Card key={i} className="p-6 hover:shadow-lg transition-shadow">
             <div className="flex justify-between items-start mb-4">
               <div style={{ backgroundColor: stat.bgColor }} className="w-12 h-12 flex justify-center items-center rounded-lg">
                 <stat.icon style={{ color: stat.iconColor }} className="w-6 h-6" />
               </div>
-              <TrendingUp style={{ color: 'var(--chart-2)' }} className="w-4 h-4" />
+              <TrendingUp className="w-4 h-4 text-[var(--chart-2)]" />
             </div>
-            <p style={{ fontSize: '0.75rem', opacity: 0.6 }}>{stat.title}</p>
-            <p style={{ fontSize: '1rem' }}>{stat.value}</p>
-            <p style={{ fontSize: '0.75rem', opacity: 0.5 }}>{stat.trend}</p>
+            <p className="text-xs text-muted-foreground">{stat.title}</p>
+            <p className="text-base">{stat.value}</p>
+            <p className="text-xs text-muted-foreground/80">{stat.trend}</p>
           </Card>
         ))}
       </div>
@@ -115,9 +115,9 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
       {/* Gráficos */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 mb-6">
         {/* Pie */}
-        <Card className="p-6" style={{ backgroundColor: 'var(--card)' }}>
-          <h2 style={{ fontWeight: 'var(--font-weight-medium)' }}>Distribución de Pacientes</h2>
-          <p style={{ fontSize: '0.75rem', opacity: 0.6 }}>Por estado de salud</p>
+        <Card className="p-6">
+          <h2 className="font-medium">Distribución de Pacientes</h2>
+          <p className="text-xs text-muted-foreground">Por estado de salud</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <PieChart>
@@ -145,9 +145,9 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
         </Card>
 
         {/* Bar */}
-        <Card className="p-6" style={{ backgroundColor: 'var(--card)' }}>
-          <h2 style={{ fontWeight: 'var(--font-weight-medium)' }}>Pacientes Atendidos</h2>
-          <p style={{ fontSize: '0.75rem', opacity: 0.6 }}>Últimos 7 días</p>
+        <Card className="p-6">
+          <h2 className="font-medium">Pacientes Atendidos</h2>
+          <p className="text-xs text-muted-foreground">Últimos 7 días</p>
           <div className="h-64">
             <ResponsiveContainer width="100%" height="100%">
               <BarChart data={weeklyPatientsData}>
@@ -164,10 +164,10 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
 
       {/* Notificaciones + Accesos */}
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        <Card className="p-6 lg:col-span-2" style={{ backgroundColor: 'var(--card)' }}>
+        <Card className="p-6 lg:col-span-2">
           <div className="flex justify-between items-center mb-4">
             <h2>Notificaciones Recientes</h2>
-            <Badge style={{ backgroundColor: 'var(--destructive)', color: 'white' }}>{notifications.length}</Badge>
+            <Badge variant="destructive">{notifications.length}</Badge>
           </div>
           <Separator className="mb-4" />
           <div className="space-y-3">
@@ -178,8 +178,8 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
                   <div className="flex gap-3 items-start">
                     <Bell style={{ color: style.icon }} className="w-4 h-4 mt-0.5" />
                     <div>
-                      <p style={{ fontSize: '0.75rem' }}>{n.message}</p>
-                      <p style={{ fontSize: '0.75rem', opacity: 0.5 }}>{n.time}</p>
+                      <p className="text-xs">{n.message}</p>
+                      <p className="text-xs text-muted-foreground/80">{n.time}</p>
                     </div>
                   </div>
                 </div>
@@ -188,8 +188,8 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
           </div>
         </Card>
 
-        <Card className="p-6" style={{ backgroundColor: 'var(--card)' }}>
-          <h2 style={{ fontWeight: 'var(--font-weight-medium)', marginBottom: '1rem' }}>Accesos Rápidos</h2>
+        <Card className="p-6">
+          <h2 className="font-medium mb-4">Accesos Rápidos</h2>
           <Separator className="mb-4" />
           <div className="space-y-3">
             {quickActions.map(action => (
@@ -197,19 +197,14 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
                 key={action.id}
                 variant="outline"
                 onClick={() => handleQuickAction(action.action)}
-                className="w-full flex items-start gap-3 p-4 rounded-lg transition-all"
-                style={{
-                  borderColor: 'var(--secondary)',
-                  color: 'var(--foreground)',
-                  backgroundColor: 'var(--card)'
-                }}
+                className="w-full h-auto flex items-start gap-3 p-4 rounded-lg transition-all justify-start"
               >
-                <div className="w-10 h-10 flex items-center justify-center rounded-lg" style={{ backgroundColor: 'var(--accent)' }}>
-                  <action.icon className="w-5 h-5" style={{ color: 'var(--destructive)' }} />
+                <div className="w-10 h-10 flex items-center justify-center rounded-lg bg-accent">
+                  <action.icon className="w-5 h-5 text-destructive" />
                 </div>
                 <div className="text-left flex-1">
-                  <p style={{ fontSize: '0.75rem', marginBottom: '0.25rem' }}>{action.title}</p>
-                  <p style={{ fontSize: '0.75rem', opacity: 0.6 }}>{action.description}</p>
+                  <p className="text-xs mb-1">{action.title}</p>
+                  <p className="text-xs text-muted-foreground">{action.description}</p>
                 </div>
               </Button>
             ))}
@@ -219,12 +214,7 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
 
           <Button
             variant="outline"
-            className="w-full p-3 rounded-lg flex items-center justify-center gap-2"
-            style={{
-              borderColor: 'var(--secondary)',
-              color: 'var(--destructive)',
-              backgroundColor: 'var(--card)'
-            }}
+            className="w-full p-3 rounded-lg text-destructive"
           >
             <Activity className="w-4 h-4" />
             Ver Más Opciones

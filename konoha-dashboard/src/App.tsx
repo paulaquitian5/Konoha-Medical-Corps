@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import './styles/globals.css';
 import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { PatientConsultationForm } from './components/PatientConsultationForm';
 import { MedicalDashboard } from './components/MedicalDashboard';

@@ -3,7 +3,7 @@ import { Search, Users, Grid, List, Eye, Edit, User, Phone, Mail, AlertCircle } 
 import { Button } from './ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from './ui/card';
 import { Input } from './ui/input';
-import { Select } from './ui/select';
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from './ui/select';
 import { Badge } from './ui/badge';
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from './ui/table';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from './ui/dialog';
@@ -373,16 +373,17 @@ export const PatientConsultationForm: React.FC = () => {
               />
             </div>
             
-            <select
-              value={conditionFilter}
-              onChange={(e) => setConditionFilter(e.target.value)}
-              className="px-4 py-2 border border-gray-300 rounded-lg text-xs hover:border-gray-400 focus:outline-none focus:ring-2 focus:ring-[#2D5BFF] focus:ring-opacity-50"
-            >
-              <option value="">Todas las condiciones</option>
-              <option value="stable">Estable</option>
-              <option value="critical">Crítico</option>
-              <option value="urgent">Urgente</option>
-            </select>
+            <Select value={conditionFilter} onValueChange={setConditionFilter}>
+              <SelectTrigger className="text-xs w-full lg:w-[180px]">
+                <SelectValue placeholder="Todas las condiciones" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="">Todas las condiciones</SelectItem>
+                <SelectItem value="stable">Estable</SelectItem>
+                <SelectItem value="critical">Crítico</SelectItem>
+                <SelectItem value="urgent">Urgente</SelectItem>
+              </SelectContent>
+            </Select>
 
             <div className="flex gap-2">
               <Button
