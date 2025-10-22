@@ -1,214 +1,190 @@
 const express = require('express');
 const router = express.Router();
-const Usuario = require('../models/Usuario');
+const Usuario = require('../models/usuarioModels');
 const jwt = require('jsonwebtoken');
 const { verificarToken } = require('./validar_token');
 
-const JWT_SECRET = process.env.JWT_SECRET || 'konecta-secret-key';
+const SECRET_KEY = process.env.JWT_SECRET || "clave_secreta_konoha";
 
-
-router.get('/usuarios', async (req, res) => {
+// ===============================
+//  Crear un nuevo usuario (registro)
+// ===============================
+router.post("/", async (req, res) => {
   try {
-    const usuarios = await Usuario.find().select('-password');
-    res.json({ exito: true, usuarios });
-  } catch (error) {
-    res.status(500).json({ exito: false, mensaje: 'Error al obtener usuarios' });
-  }
-});
+    const { username, nombreCompleto, email, telefono, hashedPassword, rol, tecnicasDominadas, hospitalId } = req.body;
 
+    const existe = await Usuario.findOne({ email });
+    if (existe) {
+      return res.status(400).json({ exito: false, mensaje: "El email ya está registrado" });
+    }
 
-// Obtener listado de usuarios
-router.get('/usuarios', async (req, res) => {
-  try {
-    const { page = 1, limit = 10, buscar = '' } = req.query;
-    const query = buscar
-      ? {
-          $or: [
-            { nombre: { $regex: buscar, $options: 'i' } },
-            { apellido: { $regex: buscar, $options: 'i' } },
-            { email: { $regex: buscar, $options: 'i' } }
-          ],
-          estado: 'activo'
-        }
-      : { estado: 'activo' };
-    
-    const total = await Usuario.countDocuments(query);
-    const usuarios = await Usuario.find(query)
-      .select('nombre apellido email foto_perfil biografia seguidores siguiendo')
-      .skip((page - 1) * limit)
-      .limit(Number(limit))
-      .sort({ nombre: 1 });
-    
-    res.json({
+    const nuevoUsuario = new Usuario({
+      username,
+      nombreCompleto,
+      email,
+      telefono,
+      hashedPassword,
+      rol,
+      tecnicasDominadas,
+      hospitalId
+    });
+
+    await nuevoUsuario.save();
+
+    res.status(201).json({
       exito: true,
-      paginacion: {
-        total,
-        pagina: Number(page),
-        paginas: Math.ceil(total / limit),
-        por_pagina: Number(limit)
-      },
-      usuarios: usuarios.map(usuario => ({
-        id: usuario._id,
-        nombre: usuario.nombre,
-        apellido: usuario.apellido,
-        email: usuario.email,
-        foto_perfil: usuario.foto_perfil,
-        biografia: usuario.biografia,
-        seguidores: usuario.seguidores.length,
-        siguiendo: usuario.siguiendo.length
-      }))
-    });
-    
-  } catch (error) {
-    console.error('Error al obtener usuarios:', error);
-    res.status(500).json({ 
-      exito: false, 
-      mensaje: 'Error al obtener usuarios', 
-      error: error.message 
-    });
-  }
-});
-
-// Obtener un usuario por ID
-router.get('/usuarios/:id', verificarToken, async (req, res) => {
-  try {
-    const usuario = await Usuario.findById(req.params.id)
-      .select('-__v')
-      .populate('seguidores', 'nombre apellido foto_perfil')
-      .populate('siguiendo', 'nombre apellido foto_perfil')
-   
-    
-    if (!usuario) {
-      return res.status(404).json({ 
-        exito: false, 
-        mensaje: 'Usuario no encontrado' 
-      });
-    }
-
-    if (usuario.estado !== 'activo' && req.usuario.rol !== 'admin') {
-      return res.status(403).json({ 
-        exito: false, 
-        mensaje: 'Usuario no disponible' 
-      });
-    }
-    
-    res.json({
-      exito: true,
-      usuario: {
-        id: usuario._id,
-        nombre: usuario.nombre,
-        apellido: usuario.apellido,
-        email: usuario.email,
-        foto_perfil: usuario.foto_perfil,
-        biografia: usuario.biografia,
-        seguidores: usuario.seguidores,
-        siguiendo: usuario.siguiendo,
-        publicaciones: usuario.publicaciones,
-        estado: usuario.estado,
-        fecha_registro: usuario.fecha_registro,
-        ultima_conexion: usuario.ultima_conexion,
-        rol: req.usuario.rol === 'admin' ? usuario.rol : undefined
-      }
-    });
-    
-  } catch (error) {
-    console.error('Error al obtener usuario:', error);
-    res.status(500).json({ 
-      exito: false, 
-      mensaje: 'Error al obtener usuario', 
-      error: error.message 
-    });
-  }
-});
-
-// Actualizar información de usuario
-router.put('/usuarios/:id', verificarToken, async (req, res) => {
-  try {
-    if (req.usuario.id !== req.params.id && req.usuario.rol !== 'admin') {
-      return res.status(403).json({ 
-        exito: false, 
-        mensaje: 'No tienes permiso' 
-      });
-    }
-    
-    const { nombre, apellido, biografia } = req.body;
-    const camposActualizables = {};
-    if (nombre) camposActualizables.nombre = nombre;
-    if (apellido) camposActualizables.apellido = apellido;
-    if (biografia !== undefined) camposActualizables.biografia = biografia;
-    
-    if (req.usuario.rol === 'admin') {
-      if (req.body.estado) camposActualizables.estado = req.body.estado;
-      if (req.body.rol) camposActualizables.rol = req.body.rol;
-    }
-    
-    const usuarioActualizado = await Usuario.findByIdAndUpdate(
-      req.params.id,
-      { $set: camposActualizables },
-      { new: true, runValidators: true }
-    ).select('-__v');
-  
-    if (!usuarioActualizado) {
-      return res.status(404).json({
-        exito: false,
-        mensaje: 'Usuario no encontrado'
-      });
-    }
-  
-    res.json({
-      exito: true,
-      mensaje: 'Usuario actualizado',
-      usuario: {
-        id: usuarioActualizado._id,
-        nombre: usuarioActualizado.nombre,
-        apellido: usuarioActualizado.apellido,
-        email: usuarioActualizado.email,
-        foto_perfil: usuarioActualizado.foto_perfil,
-        biografia: usuarioActualizado.biografia,
-        estado: usuarioActualizado.estado,
-        rol: usuarioActualizado.rol
-      }
+      mensaje: "Usuario creado correctamente",
+      usuario: nuevoUsuario.getInfoPublica()
     });
   } catch (error) {
-    console.error('Error al actualizar usuario:', error);
+    console.error("Error al crear usuario:", error);
     res.status(500).json({
       exito: false,
-      mensaje: 'Error al actualizar usuario',
+      mensaje: "Error del servidor al crear usuario",
       error: error.message
     });
   }
 });
 
-// Seguir a un usuario
-router.post('/usuarios/:id/seguir', verificarToken, async (req, res) => {
+
+// ===============================
+//  Login (autenticación con JWT)
+// ===============================
+router.post("/login", async (req, res) => {
   try {
-    const usuarioAseguir = await Usuario.findById(req.params.id);
-    const usuarioActual = await Usuario.findById(req.usuario.id);
+    const { email, password } = req.body;
 
-    if (!usuarioAseguir || !usuarioActual) {
-      return res.status(404).json({ exito: false, mensaje: 'Usuario no encontrado' });
+    // Buscar usuario y forzar que traiga la contraseña
+    const usuario = await Usuario.findOne({ email }).select("+hashedPassword");
+
+    if (!usuario) {
+      return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
     }
 
-    // No permitir seguirse a sí mismo
-    if (usuarioAseguir._id.equals(usuarioActual._id)) {
-      return res.status(400).json({ exito: false, mensaje: 'No puedes seguirte a ti mismo' });
+    // Comparar contraseñas
+    const passwordValido = await bcrypt.compare(password, usuario.hashedPassword);
+    if (!passwordValido) {
+      return res.status(401).json({ exito: false, mensaje: "Contraseña incorrecta" });
     }
 
-    // Agregar a seguidores y siguiendo si no existe ya
-    if (!usuarioAseguir.seguidores.includes(usuarioActual._id)) {
-      usuarioAseguir.seguidores.push(usuarioActual._id);
-      await usuarioAseguir.save();
-    }
-    if (!usuarioActual.siguiendo.includes(usuarioAseguir._id)) {
-      usuarioActual.siguiendo.push(usuarioAseguir._id);
-      await usuarioActual.save();
-    }
+    // Crear token JWT
+    const token = jwt.sign(
+      { id: usuario._id, rol: usuario.rol },
+      SECRET_KEY,
+      { expiresIn: "4h" }
+    );
 
-    res.json({ exito: true, mensaje: 'Ahora sigues a este usuario' });
+    usuario.ultima_conexion = new Date();
+    await usuario.save();
+
+    res.json({
+      exito: true,
+      mensaje: "Inicio de sesión exitoso",
+      token,
+      usuario: usuario.getInfoPublica()
+    });
   } catch (error) {
-    console.error('Error al seguir usuario:', error);
-    res.status(500).json({ exito: false, mensaje: 'Error al seguir usuario', error: error.message });
+    console.error("Error en login:", error);
+    res.status(500).json({
+      exito: false,
+      mensaje: "Error en el servidor durante el login",
+      error: error.message
+    });
   }
 });
+
+
+// ===============================
+//  Obtener todos los usuarios
+// ===============================
+router.get("/", async (req, res) => {
+  try {
+    const usuarios = await Usuario.find().select("-hashedPassword");
+    res.json({ exito: true, total: usuarios.length, usuarios });
+  } catch (error) {
+    res.status(500).json({
+      exito: false,
+      mensaje: "Error al obtener usuarios",
+      error: error.message
+    });
+  }
+});
+
+
+// ===============================
+//  Obtener usuario por ID
+// ===============================
+router.get("/:id", async (req, res) => {
+  try {
+    const usuario = await Usuario.findById(req.params.id).select("-hashedPassword");
+
+    if (!usuario) {
+      return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
+    }
+
+    res.json({ exito: true, usuario });
+  } catch (error) {
+    res.status(500).json({
+      exito: false,
+      mensaje: "Error al obtener usuario",
+      error: error.message
+    });
+  }
+});
+
+
+// ===============================
+//  Actualizar usuario
+// ===============================
+router.put("/:id", async (req, res) => {
+  try {
+    const data = { ...req.body };
+
+    // Si intenta cambiar contraseña, la ciframos antes
+    if (data.hashedPassword) {
+      data.hashedPassword = await bcrypt.hash(data.hashedPassword, 10);
+    }
+
+    const usuario = await Usuario.findByIdAndUpdate(req.params.id, data, {
+      new: true,
+      runValidators: true
+    }).select("-hashedPassword");
+
+    if (!usuario) {
+      return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
+    }
+
+    res.json({ exito: true, mensaje: "Usuario actualizado correctamente", usuario });
+  } catch (error) {
+    res.status(500).json({
+      exito: false,
+      mensaje: "Error al actualizar usuario",
+      error: error.message
+    });
+  }
+});
+
+
+// ===============================
+//  Eliminar usuario
+// ===============================
+router.delete("/:id", async (req, res) => {
+  try {
+    const usuario = await Usuario.findByIdAndDelete(req.params.id);
+
+    if (!usuario) {
+      return res.status(404).json({ exito: false, mensaje: "Usuario no encontrado" });
+    }
+
+    res.json({ exito: true, mensaje: "Usuario eliminado correctamente" });
+  } catch (error) {
+    res.status(500).json({
+      exito: false,
+      mensaje: "Error al eliminar usuario",
+      error: error.message
+    });
+  }
+});
+
 
 module.exports = router;

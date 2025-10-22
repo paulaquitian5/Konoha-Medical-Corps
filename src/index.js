@@ -10,20 +10,24 @@ const server = http.createServer(app); // <-- Crea el servidor HTTP base
 const io = new Server(server, {
   cors: { origin: "*" } // <-- Permite conexión desde cualquier cliente
 });
-const port = 3000;
+const port = 4000;
 
 // ==========================
 // 🧩 Middlewares
 // ==========================
-app.use(cors());
+app.use(cors({
+  origin: "http://localhost:5176", // puerto de Vite
+  methods: ["GET", "POST", "PUT", "DELETE"],
+  credentials: true
+}));
 app.use(express.urlencoded({ extended: false }));
-app.use(express.json()); 
+app.use(express.json());
 
 // ==========================
 // 🚏 Rutas
 // ==========================
 
-const pacientesRoutes = require('./routes/pacientes'); 
+const pacientesRoutes = require('./routes/pacientes');
 const telemedicinaRoutes = require('./routes/telemedicina');
 const diagnosticoRoutes = require('./routes/diagnostico');
 const emergenciaRoutes = require('./routes/emergencia');
@@ -31,7 +35,7 @@ const medicamentosRoutes = require('./routes/medicamentos');
 
 require('dotenv').config();
 
-app.use('/api/pacientes', pacientesRoutes); 
+app.use('/api/pacientes', pacientesRoutes);
 app.use('/api/telemedicina', telemedicinaRoutes(io));
 app.use('/api/diagnostico', diagnosticoRoutes);
 app.use('/api/emergencia', emergenciaRoutes(io));
@@ -58,6 +62,10 @@ io.on("connection", (socket) => {
 // ==========================
 // 🌐 Ruta general del cliente (frontend)
 // ==========================
+app.use(express.static(path.join(__dirname, '../frontend/dist')));
+app.use((req, res) => {
+  res.status(404).json({ message: 'Ruta no encontrada' });
+});
 
 // ==========================
 // ⚙️ Conexión a la base de datos
