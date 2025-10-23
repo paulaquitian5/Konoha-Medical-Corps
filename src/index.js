@@ -10,7 +10,7 @@ const server = http.createServer(app); // <-- Crea el servidor HTTP base
 const io = new Server(server, {
   cors: { origin: "*" } // <-- Permite conexión desde cualquier cliente
 });
-const port = 4000;
+const port = 3000;
 
 // ==========================
 // 🧩 Middlewares
@@ -32,6 +32,8 @@ const telemedicinaRoutes = require('./routes/telemedicina');
 const diagnosticoRoutes = require('./routes/diagnostico');
 const emergenciaRoutes = require('./routes/emergencia');
 const medicamentosRoutes = require('./routes/medicamentos');
+const usuarioRoutes = require('./routes/usuario');
+const autenticacionRoutes = require('./routes/autenticacion');
 
 require('dotenv').config();
 
@@ -40,6 +42,8 @@ app.use('/api/telemedicina', telemedicinaRoutes(io));
 app.use('/api/diagnostico', diagnosticoRoutes);
 app.use('/api/emergencia', emergenciaRoutes(io));
 app.use('/api/medicamentos', medicamentosRoutes);
+app.use('/api/usuarios', usuarioRoutes);
+app.use('/api/auth', autenticacionRoutes);
 
 // ==========================
 // 🟢 WebSocket
