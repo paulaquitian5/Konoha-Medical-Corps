@@ -36,11 +36,20 @@ interface PatientDetailProps {
   patient: Patient;
   isOpen: boolean;
   onClose: () => void;
-  onEdit?: () => void;
+  onEdit?: (updatedPatient: Patient) => void;
+  onDelete?: (id: string) => void;
   canEdit?: boolean;
 }
 
-const PatientDetail: React.FC<PatientDetailProps> = ({ patient, isOpen, onClose, onEdit, canEdit = true }) => {
+const PatientDetail: React.FC<PatientDetailProps> = ({ patient, isOpen, onClose, onEdit, onDelete, canEdit = true }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedMedicalHistory, setEditedMedicalHistory] = useState(patient.medicalHistory);
+
+  useEffect(() => {
+    setEditedMedicalHistory(patient.medicalHistory);
+    setIsEditing(false);
+  }, [patient]);
+
   const getChakraTypeText = (type: string) => {
     switch (type) {
       case 'fire': return 'Fuego (Katon)';
@@ -76,14 +85,22 @@ const PatientDetail: React.FC<PatientDetailProps> = ({ patient, isOpen, onClose,
         <DialogHeader>
           <DialogTitle className="flex items-center justify-between">
             <span className="font-bold text-[#3c5661]">Detalle del Paciente</span>
-            {canEdit && (
-              <Button
-                onClick={onEdit}
-                className="bg-[#882238] hover:bg-[#6d1a2c] text-white rounded-lg px-4 py-2 text-xs"
-              >
-                <Edit className="w-4 h-4 mr-2" />
-                Editar
-              </Button>
+            {canEdit && !isEditing && (
+              <div className="flex gap-2">
+                <Button
+                  onClick={() => setIsEditing(true)}
+                  className="bg-[#882238] hover:bg-[#6d1a2c] text-white rounded-lg px-4 py-2 text-xs"
+                >
+                  <Edit className="w-4 h-4 mr-2" />
+                  Editar
+                </Button>
+                <Button
+                  onClick={() => onDelete && onDelete(patient.id)}
+                  className="bg-red-600 hover:bg-red-700 text-white rounded-lg px-4 py-2 text-xs"
+                >
+                  Eliminar
+                </Button>
+              </div>
             )}
           </DialogTitle>
         </DialogHeader>
@@ -177,10 +194,42 @@ const PatientDetail: React.FC<PatientDetailProps> = ({ patient, isOpen, onClose,
               </div>
               <div>
                 <label className="block font-medium text-xs text-gray-700 mb-2">Historial Médico</label>
-                <div className="p-3 bg-gray-50 rounded-lg text-xs whitespace-pre-wrap">{patient.medicalHistory}</div>
+                {isEditing ? (
+                  <textarea
+                    value={editedMedicalHistory}
+                    onChange={(e) => setEditedMedicalHistory(e.target.value)}
+                    className="p-3 bg-gray-50 rounded-lg text-xs w-full"
+                  />
+                ) : (
+                  <div className="p-3 bg-gray-50 rounded-lg text-xs whitespace-pre-wrap">{patient.medicalHistory}</div>
+                )}
               </div>
             </div>
           </div>
+
+          {/* Botones Guardar / Cancelar */}
+          {isEditing && (
+            <div className="flex gap-2 mt-4">
+              <Button
+                onClick={() => {
+                  onEdit && onEdit({ ...patient, medicalHistory: editedMedicalHistory });
+                  setIsEditing(false);
+                }}
+                className="bg-green-600 text-white text-xs px-4 py-2 rounded-lg"
+              >
+                Guardar
+              </Button>
+              <Button
+                onClick={() => {
+                  setEditedMedicalHistory(patient.medicalHistory);
+                  setIsEditing(false);
+                }}
+                className="bg-gray-300 text-gray-800 text-xs px-4 py-2 rounded-lg"
+              >
+                Cancelar
+              </Button>
+            </div>
+          )}
         </div>
       </DialogContent>
     </Dialog>
@@ -203,27 +252,27 @@ export const PatientConsultationForm: React.FC = () => {
         console.log(' Backend URL:', import.meta.env.VITE_API_URL);
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pacientes`);
         console.log('Datos recibidos:', res.data);
+        console.log('Primer paciente crudo:', res.data.pacientes[1]);
+
 
         if (res.data && Array.isArray(res.data.pacientes)) {
-          setPatients(res.data.pacientes);
           if (res.data && Array.isArray(res.data.pacientes)) {
             const pacientesAdaptados = res.data.pacientes.map((p: any) => ({
-              id: p._id,
-              name: `${p.nombre} ${p.apellido}`,
-              age: p.fechaNacimiento
-                ? Math.floor((Date.now() - new Date(p.fechaNacimiento).getTime()) / (1000 * 60 * 60 * 24 * 365.25))
-                : 0,
-
-              chakraType: p.chakra?.tipo || "No registrado",
-              estado: p.estado || "Desconocido",
-              currentCondition: p.currentCondition || "stable",
+              id: p.id || p._id || "Sin ID",
+              name: p.name || `${p.nombre ?? ''} ${p.apellido ?? ''}`.trim() || "Sin nombre",
+              age: p.age ?? 0,
               rango: p.rango || "No asignado",
               aldea: p.aldea || "No registrada",
-              phone: p.contact?.phone || "No registrado",
-              email: p.contact?.email || "No disponible",
-              emergencyContactName: p.emergencyContact?.name || "No especificado",
-              emergencyContactPhone: p.emergencyContact?.phone || "No especificado",
-              medicalHistory: p.medicalHistory || "Sin historial"
+              estado: p.estado || "Desconocido",
+              chakraType: p.chakraType || p.chakra?.tipo || "No registrado",
+              grupoSanguineo: p.grupoSanguineo || "No registrado",
+              currentCondition: p.currentCondition || "stable",
+              phone: p.phone ?? p.contact?.phone ?? "No registrado",
+              email: p.email ?? p.contact?.email ?? "No registrado",
+              emergencyContactName: p.emergencyContactName ?? "No registrado",
+              emergencyContactPhone: p.emergencyContactPhone ?? "No registrado",
+
+              medicalHistory: p.medicalHistory || "Sin historial disponible",
             }));
 
             setPatients(pacientesAdaptados);
@@ -273,18 +322,30 @@ export const PatientConsultationForm: React.FC = () => {
     setShowDetail(true);
   };
 
-  const handleEditPatient = () => {
-    console.log('Editando paciente:', selectedPatient?.name);
-    // Aquí se implementaría la navegación al formulario de edición
+  const handleEditPatient = (updatedPatient: Patient) => {
+    setPatients(prev =>
+      prev.map(p => (p.id === updatedPatient.id ? updatedPatient : p))
+    );
+    setSelectedPatient(updatedPatient); // opcional, para que el modal refleje los cambios si sigue abierto
     setShowDetail(false);
   };
-
-  const getChakraLevelText = (level: string) => {
-    switch (level) {
-      case 'low': return 'Bajo';
-      case 'medium': return 'Medio';
-      case 'high': return 'Alto';
-      default: return level;
+  const handleDeletePatient = async (id: string) => {
+    try {
+      await axios.delete(`${import.meta.env.VITE_API_URL}/api/pacientes/${id}`);
+      setPatients(prev => prev.filter(p => p.id !== id));
+      setShowDetail(false);
+    } catch (err) {
+      console.error("Error eliminando paciente:", err);
+    }
+  };
+  const getChakraTypeText = (type: string) => {
+    switch (type) {
+      case 'fire': return 'Fuego (Katon)';
+      case 'water': return 'Agua (Suiton)';
+      case 'lightning': return 'Rayo (Raiton)';
+      case 'wind': return 'Viento (Futon)';
+      case 'earth': return 'Tierra (Doton)';
+      default: return type;
     }
   };
 
@@ -396,7 +457,7 @@ export const PatientConsultationForm: React.FC = () => {
                         <TableCell className="text-xs font-medium">{patient.name}</TableCell>
                         <TableCell className="text-xs">{patient.id}</TableCell>
                         <TableCell className="text-xs">{patient.age}</TableCell>
-                        <TableCell className="text-xs">{getChakraLevelText(patient.chakraType)}</TableCell>
+                        <TableCell className="text-xs">{getChakraTypeText(patient.chakraType)}</TableCell>
                         <TableCell className="text-xs">{patient.rango}</TableCell>
                         <TableCell>
                           <Badge className={`${getConditionColor(patient.currentCondition)} text-xs px-2 py-1`}>
@@ -436,7 +497,7 @@ export const PatientConsultationForm: React.FC = () => {
                       <div className="space-y-2 mb-4">
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <User className="w-3 h-3" />
-                          {patient.age} años - Chakra {getChakraLevelText(patient.chakraType)}
+                          {patient.age} años - Chakra {getChakraTypeText(patient.chakraType)}
                         </div>
                         <div className="flex items-center gap-2 text-xs text-gray-600">
                           <Phone className="w-3 h-3" />
@@ -478,6 +539,7 @@ export const PatientConsultationForm: React.FC = () => {
           isOpen={showDetail}
           onClose={() => setShowDetail(false)}
           onEdit={handleEditPatient}
+          onDelete={handleDeletePatient}
           canEdit={true}
         />
       )}

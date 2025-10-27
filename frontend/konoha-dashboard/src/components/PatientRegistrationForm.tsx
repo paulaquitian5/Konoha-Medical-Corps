@@ -43,81 +43,6 @@ const grupoSanguineoOptions = [
   { value: 'O-', label: 'O-' },
 ];
 
-// Componente de Guía de Estilo
-const StyleGuide = () => (
-  <Card className="mb-8 p-6 bg-white">
-    <h2 className="text-lg font-bold text-[#3c5661] mb-4">Guía de Estilo - Sakura Haruno Medical System</h2>
-
-    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-      {/* Colores */}
-      <div>
-        <h3 className="font-semibold text-sm text-[#3c5661] mb-3">Colores</h3>
-        <div className="space-y-2">
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-[#882238]"></div>
-            <span className="text-xs text-[#3c5661]">Primario: #882238</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-[#f4c0c2]"></div>
-            <span className="text-xs text-[#3c5661]">Acento: #f4c0c2</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-[#72be9a]"></div>
-            <span className="text-xs text-[#3c5661]">Éxito: #72be9a</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-[#f2ede9] border border-[#f4c0c2]"></div>
-            <span className="text-xs text-[#3c5661]">Fondo: #f2ede9</span>
-          </div>
-          <div className="flex items-center gap-2">
-            <div className="w-4 h-4 rounded bg-[#3c5661]"></div>
-            <span className="text-xs text-[#3c5661]">Texto: #3c5661</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Tipografía */}
-      <div>
-        <h3 className="font-semibold text-sm text-[#3c5661] mb-3">Tipografía</h3>
-        <div className="space-y-2">
-          <div className="font-bold text-base text-[#3c5661]">Títulos: Inter Bold 16pt</div>
-          <div className="font-medium text-xs text-[#3c5661]">Etiquetas: Inter Medium 12pt</div>
-          <div className="font-normal text-xs text-[#3c5661]">Texto: Inter Regular 12pt</div>
-        </div>
-      </div>
-
-      {/* Espaciado */}
-      <div>
-        <h3 className="font-semibold text-sm text-[#3c5661] mb-3">Espaciado</h3>
-        <div className="space-y-2 text-xs text-[#3c5661]">
-          <div>Grilla: sistema 8px</div>
-          <div>Padding input: 16px</div>
-          <div>Margen sección: 24px</div>
-        </div>
-      </div>
-
-      {/* Botones */}
-      <div>
-        <h3 className="font-semibold text-sm text-[#3c5661] mb-3">Botones</h3>
-        <div className="space-y-2">
-          <Button
-            size="sm"
-            className="bg-[#882238] hover:bg-[#6d1a2c] text-white rounded-lg px-4 py-2 text-xs"
-          >
-            Primario
-          </Button>
-          <Button
-            variant="outline"
-            size="sm"
-            className="border-[#f4c0c2] text-[#882238] hover:bg-[#f4c0c2] hover:text-[#882238] rounded-lg px-4 py-2 text-xs"
-          >
-            Secundario
-          </Button>
-        </div>
-      </div>
-    </div>
-  </Card>
-);
 
 // Form Field Components
 interface FormFieldProps {
@@ -301,23 +226,15 @@ export const PatientRegistrationForm: React.FC = () => {
         sexo: data.sexo || 'No especificado',
         estado: data.estado || 'Activo',
         grupoSanguineo: data.grupoSanguineo || 'O+',
-
-        contact: {
-          phone: data.phone,
-          name: data.name || ''
-        },
-
         chakra: {
           tipo: data.chakraType,
           capacidad: data.chakraCapacidad || 'Normal',
           fluctuacion: data.chakraFluctuacion || 'Estable'
         },
-
-        emergencyContact: {
-          name: data.emergencyContactName,
-          phone: data.emergencyContactPhone
-        },
-
+        phone: data.phone,
+        email: data.email,
+        emergencyContactName: data.emergencyContactName,
+        emergencyContactPhone: data.emergencyContactPhone,
         medicalHistory: data.medicalHistory || '',
         allergiesConditions: data.allergiesConditions || '',
         currentCondition: data.currentCondition
@@ -360,7 +277,7 @@ export const PatientRegistrationForm: React.FC = () => {
 
   return (
     <div className="max-w-2xl mx-auto">
-      <StyleGuide />
+
 
       <Card className="p-8 bg-white">
         <h1 className="font-bold mb-6 text-[#3c5661]">Formulario de Registro y Consulta Médica</h1>
