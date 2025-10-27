@@ -94,6 +94,7 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
   };
 
   useEffect(() => {
+
     const acciones = [
       {
         id: 1,
@@ -137,32 +138,38 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
     };
 
     const fetchPacientes = async () => {
+
       try {
         console.log(' Backend URL:', import.meta.env.VITE_API_URL);
         const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/pacientes`);
         console.log('Datos recibidos:', res.data);
         let listaPacientes: Paciente[] = [];
 
+
         if (res.data && Array.isArray(res.data.pacientes)) {
+          listaPacientes = res.data.pacientes;
           setPacientes(res.data.pacientes);
-          console.log('Estados de los pacientes:', res.data.pacientes.map((p: any) => p.estado));
         } else if (Array.isArray(res.data)) {
+          listaPacientes = res.data;
           setPacientes(res.data);
         } else {
           console.warn('Formato inesperado de respuesta:', res.data);
           setPacientes([]);
         }
+
+        const consultas = listaPacientes.filter((p: Paciente) => {
+
+          if (!p.createdAt) return false;
+          const fechaCreacion = new Date(p.createdAt);
           const hoy = new Date();
-    hoy.setHours(0, 0, 0, 0);
+          return fechaCreacion.getFullYear() === hoy.getFullYear() &&
+            fechaCreacion.getMonth() === hoy.getMonth() &&
+            fechaCreacion.getDate() === hoy.getDate();
+        }).length;
 
-    const consultas = listaPacientes.filter((p: Paciente) => {
-      if (!p.createdAt) return false;
-      const fechaCreacion = new Date(p.createdAt);
-      return fechaCreacion >= hoy;
-    }).length;
+        setConsultasHoy(consultas);
+        console.log("Consultas de hoy:", consultas);
 
-    setConsultasHoy(consultas);
-    console.log("Consultas de hoy:", consultas);
       } catch (err) {
         console.error('Error al obtener pacientes:', err);
         setPacientes([]);
@@ -178,45 +185,45 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
 
   if (loading) return <p>Cargando pacientes...</p>;
 
-// 🔹 Calcular estadísticas según el nivel de chakra
-const casosCriticos = pacientes.filter(p => p.currentCondition === "critical").length;
-const casosEstables = pacientes.filter(p => p.currentCondition === "stable").length;
-const casosModerados = pacientes.filter(p => p.currentCondition === "moderate").length;
+  // 🔹 Calcular estadísticas según el nivel de chakra
+  const casosCriticos = pacientes.filter(p => p.currentCondition === "critical").length;
+  const casosEstables = pacientes.filter(p => p.currentCondition === "stable").length;
+  const casosModerados = pacientes.filter(p => p.currentCondition === "moderate").length;
 
 
-const pacientesActivos = pacientes.length;
-const medicosGuardia = 12;
+  const pacientesActivos = pacientes.length;
+  const medicosGuardia = 12;
 
-const statsData = [
-  { title: 'Pacientes Totales', value: pacientesActivos, icon: Users, iconColor: 'var(--chart-1)', bgColor: 'var(--accent)', trend: 'Total registrados' },
-  { title: 'Casos Críticos', value: casosCriticos, icon: AlertCircle, iconColor: 'var(--destructive)', bgColor: 'var(--accent)', trend: `${casosCriticos} requieren atención` },
-  { title: 'Consultas de Hoy', value: consultasHoy, icon: Calendar, iconColor: 'var(--chart-2)', bgColor: 'var(--muted)', trend: '18 completadas' },
-  { title: 'Médicos de Guardia', value: medicosGuardia, icon: UserCheck, iconColor: 'var(--chart-2)', bgColor: 'var(--muted)', trend: 'Turno: Día' }
-];
+  const statsData = [
+    { title: 'Pacientes Totales', value: pacientesActivos, icon: Users, iconColor: 'var(--chart-1)', bgColor: 'var(--accent)', trend: 'Total registrados' },
+    { title: 'Casos Críticos', value: casosCriticos, icon: AlertCircle, iconColor: 'var(--destructive)', bgColor: 'var(--accent)', trend: `${casosCriticos} requieren atención` },
+    { title: 'Consultas de Hoy', value: consultasHoy, icon: Calendar, iconColor: 'var(--chart-2)', bgColor: 'var(--muted)', trend: '18 completadas' },
+    { title: 'Médicos de Guardia', value: medicosGuardia, icon: UserCheck, iconColor: 'var(--chart-2)', bgColor: 'var(--muted)', trend: 'Turno: Día' }
+  ];
 
-const patientStatusData = [
-  { name: 'Crítico', value: casosCriticos, color: 'var(--destructive)' },
-  { name: 'Normal', value: casosModerados, color: 'var(--chart-2)' },
-  { name: 'Estable', value: casosEstables, color: 'var(--chart-1)' }
-];
+  const patientStatusData = [
+    { name: 'Crítico', value: casosCriticos, color: 'var(--destructive)' },
+    { name: 'Normal', value: casosModerados, color: 'var(--chart-2)' },
+    { name: 'Estable', value: casosEstables, color: 'var(--chart-1)' }
+  ];
 
 
-// 🔹 Obtener los últimos 7 días
-const hoy = new Date();
-const diasSemana = Array.from({ length: 7 }).map((_, i) =>
-  subDays(hoy, 6 - i)
-);
+  // 🔹 Obtener los últimos 7 días
+  const hoy = new Date();
+  const diasSemana = Array.from({ length: 7 }).map((_, i) =>
+    subDays(hoy, 6 - i)
+  );
 
-// 🔹 Contar pacientes por día
-const weeklyPatientsData = diasSemana.map((dia) => {
-  const count = pacientes.filter((p) =>
-    p.createdAt ? isSameDay(new Date(p.createdAt), dia) : false
-  ).length;
+  // 🔹 Contar pacientes por día
+  const weeklyPatientsData = diasSemana.map((dia) => {
+    const count = pacientes.filter((p) =>
+      p.createdAt ? isSameDay(new Date(p.createdAt), dia) : false
+    ).length;
 
-  // Ej: "Lun", "Mar", etc.
-  const dayName = format(dia, "EEE", { locale: es }).replace(".", "");
-  return { day: dayName.charAt(0).toUpperCase() + dayName.slice(1), pacientes: count };
-});
+    // Ej: "Lun", "Mar", etc.
+    const dayName = format(dia, "EEE", { locale: es }).replace(".", "");
+    return { day: dayName.charAt(0).toUpperCase() + dayName.slice(1), pacientes: count };
+  });
 
 
   return (

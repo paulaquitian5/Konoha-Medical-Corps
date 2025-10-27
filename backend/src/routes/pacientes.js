@@ -31,13 +31,14 @@ router.post("/", async (req, res) => {
 router.get("/", async (req, res) => {
   try {
     const pacientes = await Paciente.find().select("-__v").sort({ nombre: 1 });
-
+    // Aplicar el resumen con cálculo de edad
+    const pacientesConResumen = pacientes.map(p => p.getResumenMedico());
     res.json({
       exito: true,
-      total: pacientes.length,
-      pacientes
+      total: pacientesConResumen.length,
+      pacientes: pacientesConResumen
     });
-  } catch (error) {
+  } catch (error) { 
     console.error("Error al obtener pacientes:", error);
     res.status(500).json({
       exito: false,
@@ -194,7 +195,6 @@ router.delete("/:id", async (req, res) => {
         mensaje: "Paciente no encontrado"
       });
     }
-
     res.json({
       exito: true,
       mensaje: "Paciente eliminado correctamente"
