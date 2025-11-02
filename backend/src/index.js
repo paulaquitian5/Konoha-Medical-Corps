@@ -10,7 +10,7 @@ const server = http.createServer(app); // <-- Crea el servidor HTTP base
 const io = new Server(server, {
   cors: { origin: "*" } // <-- Permite conexión desde cualquier cliente
 });
-const port = 4000;
+const port = process.env.PORT || 4000;
 
 // ==========================
 // 🧩 Middlewares
