@@ -244,7 +244,7 @@ export const PatientRegistrationForm: React.FC = () => {
       console.log("Payload a enviar:", pacientePayload);
       alert(JSON.stringify(pacientePayload, null, 2));
 
-      const response = await axios.post('http://localhost:4000/api/pacientes', pacientePayload);
+      const response = await axios.post('https://konoha-medical-corps-backend.onrender.com/api/pacientes', pacientePayload);
       console.log('Paciente guardado:', response.data);
 
       setIsSubmitted(true);
