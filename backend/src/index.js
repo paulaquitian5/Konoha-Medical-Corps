@@ -70,6 +70,6 @@ mongoose.connect(process.env.MONGODB_URI)
 // ==========================
 // 🚀 Servidor activo
 // ==========================
-app.listen(port, () => {
+server.listen(port, () => {
   console.log(`🔥 Servidor Shinobi escuchando en el puerto ${port}`);
 });

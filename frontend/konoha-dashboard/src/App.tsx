@@ -3,6 +3,7 @@ import './styles/globals.css';
 import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { PatientConsultationForm } from './components/PatientConsultationForm';
 import { MedicalDashboard } from './components/MedicalDashboard';
+import { RelayBox } from './components/RelayBox';
 import { Button } from './components/ui/button';
 import { Card } from './components/ui/card';
 import { UserPlus, Search, LayoutDashboard } from 'lucide-react';
@@ -20,6 +21,8 @@ export default function App() {
         return <PatientRegistrationForm />;
       case 'consultation':
         return <PatientConsultationForm />;
+      case 'telemedicina':
+        return <RelayBox />;
       default:
         return (
           <Card className="p-8 bg-white text-center max-w-md mx-auto">
@@ -50,6 +53,14 @@ export default function App() {
               >
                 <Search className="w-4 h-4" />
                 Consulta de Pacientes
+              </Button>
+              <Button
+                onClick={() => setCurrentView('telemedicina')}
+                className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+                variant="outline"
+              >
+                <Search className="w-4 h-4" />
+                Telemedicina
               </Button>
             </div>
           </Card>
@@ -104,6 +115,17 @@ export default function App() {
                 }`}
               >
                 Consulta
+              </Button>
+               <Button
+                onClick={() => setCurrentView('telemedicina')}
+                variant={currentView === 'telemedicina' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${
+                  currentView === 'telemedicina'
+                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                }`}
+              >
+                Telemedicina
               </Button>
             </div>
           </div>

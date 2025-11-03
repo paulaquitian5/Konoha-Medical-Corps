@@ -3,24 +3,30 @@ const mongoose = require("mongoose");
 const VitalSignsSchema = new mongoose.Schema({
   pulso: {
     type: Number,
-    required: true },             // latidos por minuto
+    required: true
+  },             // latidos por minuto
   presion: {
     type: String,
-    default: "Normal" },        // ej: "120/80"
+    default: "Normal"
+  },        // ej: "120/80"
   nivel_chakra: {
     type: Number,
     min: 0,
-    max: 100 },    // porcentaje del chakra actual
+    max: 100
+  },    // porcentaje del chakra actual
   oxigenacion: {
     type: Number,
     min: 0,
-    max: 100 },     // % SpO2
+    max: 100
+  },     // % SpO2
   temperatura: {
-    type: Number },     // grados Celsius
+    type: Number
+  },     // grados Celsius
   estado_general: {
     type: String,
     enum: ["Estable", "Fatigado", "Crítico"],
-    default: "Estable" }
+    default: "Estable"
+  }
 }, { _id: false });
 
 const TelemedicineSchema = new mongoose.Schema({

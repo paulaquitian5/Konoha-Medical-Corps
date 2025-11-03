@@ -1,1 +1,1 @@
-export type ViewType = 'menu' | 'dashboard' | 'registration' | 'consultation';
+export type ViewType = 'menu' | 'dashboard' | 'registration' | 'consultation'| 'telemedicina';

@@ -215,6 +215,27 @@ export const PatientRegistrationForm: React.FC = () => {
   const onSubmit = async (data: FormData) => {
 
     try {
+      let defaults = {};
+
+      if (data.currentCondition === "stable") {
+        defaults = {
+          chakraCapacidad: "Normal",
+          chakraFluctuacion: "Estable",
+          estado: "Activo",
+        };
+      } else if (data.currentCondition === "critical") {
+        defaults = {
+          chakraCapacidad: "Baja",
+          chakraFluctuacion: "Inestable",
+          estado: "Inactivo",
+        };
+      } else if (data.currentCondition === "urgent") {
+        defaults = {
+          chakraCapacidad: "Alta",
+          chakraFluctuacion: "Inestable",
+          estado: "Activo",
+        };
+      }
       // Payload plano compatible con backend
       const pacientePayload = {
         nombre: data.patientName,
@@ -244,8 +265,73 @@ export const PatientRegistrationForm: React.FC = () => {
       console.log("Payload a enviar:", pacientePayload);
       alert(JSON.stringify(pacientePayload, null, 2));
 
+
+      //Crear paciente
       const response = await axios.post('http://localhost:4000/api/pacientes', pacientePayload);
       console.log('Paciente guardado:', response.data);
+      const pacienteId = response.data.id;
+
+      let vitals = {};
+
+      switch (data.currentCondition) {
+        case "critical":
+          vitals = {
+            pulso: 110,
+            presion: "90/60",
+            nivel_chakra: 30,
+            oxigenacion: 85,
+            temperatura: 38.5,
+            estado_general: "Crítico",
+          };
+          break;
+        case "urgent":
+          vitals = {
+            pulso: 95,
+            presion: "100/70",
+            nivel_chakra: 55,
+            oxigenacion: 90,
+            temperatura: 37.8,
+            estado_general: "Urgente",
+          };
+          break;
+        default:
+          vitals = {
+            pulso: 75,
+            presion: "120/80",
+            nivel_chakra: 80,
+            oxigenacion: 98,
+            temperatura: 36.5,
+            estado_general: "Estable",
+          };
+          break;
+      }
+
+      const registroTelemedicina = {
+        pacienteId,
+        vitals,
+        ubicacion: {
+          lat: 4.60971,
+          lon: -74.08175,
+        },
+      };
+
+      // Crear registro de telemedicina
+      //await axios.post('http://localhost:4000/api/telemedicina', registroTelemedicina);
+      await axios.post("http://localhost:4000/api/telemedicina", {
+        ninjaId: response.data.paciente._id,
+        vitals: {
+          pulso: 80, // este es el que sí espera el modelo
+          presion: "120/80",
+          nivel_chakra: 90,
+          oxigenacion: 98,
+          temperatura: 36.5,
+          estado_general: "Estable"
+        },
+        ubicacion: { lat: 4.711, lon: -74.072 } // opcional, pero en formato correcto
+      });
+      
+      console.log("Paciente y registro de telemedicina creados correctamente");
+      console.log("ID del paciente recién creado:", response.data.paciente._id);
 
       setIsSubmitted(true);
       setTimeout(() => setIsSubmitted(false), 3000);
