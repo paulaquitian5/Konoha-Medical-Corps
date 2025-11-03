@@ -107,7 +107,7 @@ El **frontend** realiza peticiones al backend usando la variable de entorno `VIT
 ## 🌐 URLs activas
 
 - **Backend (API REST):**  
-  [https://konoha-medical-corps.onrender.com](https://konoha-medical-corps.onrender.com)  
+  [https://konoha-medical-corps-backend.onrender.com/](https://konoha-medical-corps-backend.onrender.com/)  
   > Esta dirección corresponde al servidor del sistema, por lo que no muestra una interfaz visual. 
 
   > Es completamente normal que aparezca el mensaje **“Cannot GET /”**, ya que el backend únicamente responde a solicitudes de la API mediante rutas como `/api/pacientes` o `/api/emergencia`.
