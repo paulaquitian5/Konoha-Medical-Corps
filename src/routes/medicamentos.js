@@ -4,12 +4,18 @@ const router = express.Router();
 
 const Receta = require("../models/medicamentosModels");
 const Paciente = require("../models/pacienteModels");
-const { verificarToken } = require("./validar_token"); 
+const { verificarToken } = require("./validar_token");
+const crypto = require("crypto");
 
-// Generar firma digital simulada
-function generarFirmaDigital(doctorId, pacienteId, timestamp) {
+// Generar firma digital segura (hash SHA256)
+function generarFirmaDigital(doctorId, pacienteId, timestamp, selloBase64) {
+  const crypto = require("crypto");
   const base = `${doctorId}-${pacienteId}-${timestamp}`;
-  return Buffer.from(base).toString("base64");
+  const hash = crypto.createHash("sha256").update(base).digest("hex");
+  return {
+    hash,
+    sello: selloBase64 || null
+  };
 }
 
 // Crear receta médica
@@ -34,7 +40,9 @@ router.post("/", verificarToken, async (req, res) => {
       doctorId: req.usuario.id,
       medicamentos,
       observaciones,
-      firmaDigital
+      firmaDigital,
+      fechaCreacion: new Date(),
+      pedidoAutomatico: false
     });
 
     const saved = await receta.save();
@@ -95,6 +103,33 @@ router.post("/order", verificarToken, async (req, res) => {
     res.status(500).json({
       exito: false,
       mensaje: "Error al procesar pedido de medicamentos",
+      error: error.message
+    });
+  }
+});
+// Validar firma digital
+router.get("/validar/:firmaDigital", verificarToken, async (req, res) => {
+  try {
+    const { firmaDigital } = req.params;
+
+    const receta = await Receta.findOne({ firmaDigital });
+    if (!receta) {
+      return res.status(404).json({ exito: false, mensaje: "Firma médica no encontrada o inválida" });
+    }
+
+    res.json({
+      exito: true,
+      mensaje: "Sello médico válido",
+      data: {
+        doctorId: receta.doctorId,
+        patientId: receta.patientId,
+        fecha: receta.fechaCreacion,
+      }
+    });
+  } catch (error) {
+    res.status(500).json({
+      exito: false,
+      mensaje: "Error al validar sello médico",
       error: error.message
     });
   }

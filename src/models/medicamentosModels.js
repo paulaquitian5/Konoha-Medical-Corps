@@ -11,6 +11,10 @@ const MedicamentoSchema = new mongoose.Schema({
     required: [true, "La dosis es obligatoria"],
     trim: true
   },
+  cantidad: {
+    type: Number,
+    required: true
+  },
   frecuencia: {
     type: String,
     required: [true, "La frecuencia es obligatoria"],
@@ -32,14 +36,17 @@ const RecetaSchema = new mongoose.Schema({
     type: String,
     required: true
   },
-  medicamentos: [MedicamentoSchema],
+  medicamentos: {
+    type: [MedicamentoSchema],
+    required: true
+  },
   observaciones: {
     type: String,
-    default: ""
+    default: "Sin observaciones"
   },
   firmaDigital: {
-    type: String, // firma simulada en esta versión
-    required: true
+    hash: String,
+    sello: String
   },
   fechaCreacion: {
     type: Date,
