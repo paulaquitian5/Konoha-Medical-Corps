@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import axios from 'axios';
 import { Card } from './ui/card';
 import { Button } from './ui/button';
@@ -36,6 +36,7 @@ interface Ninja {
   apellido: string;
   aldea: string;
   rango: string;
+  currentCondition: "critical" | "urgent" | "stable"; // Ajustado a los valores reales
 }
 
 interface TelemedicineRecord {
@@ -44,6 +45,7 @@ interface TelemedicineRecord {
   ninjaId: Ninja;
   vitals: Vitals;
   ubicacion: Ubicacion;
+  currentCondition: "critical" | "urgent" | "stable"; // Agregado para unificar
   timestamp: string;
 }
 
@@ -59,13 +61,15 @@ export const RelayBox: React.FC = () => {
     temperature: 0,
     chakraLevel: 0,
     pressure: '',
-    status: 'normal',
+    status: 'stable',
     id: ''
   });
 
   const [isUpdating, setIsUpdating] = useState(false);
   const [alertSent, setAlertSent] = useState(false);
-
+  // refs para controlar selección automática/manual
+  const didAutoSelectRef = useRef(false);
+  const manualSelectRef = useRef(false);
   useEffect(() => {
     const fetchConnectedNinjas = async () => {
       try {
@@ -78,12 +82,14 @@ export const RelayBox: React.FC = () => {
         const formatted: TelemedicineRecord[] = data.map((record: any) => ({
           _id: record._id,               // ID del registro de telemedicina
           missionId: record.missionId,   // missionId del backend
+          currentCondition: record.ninjaId.currentCondition, // Condición principal
           ninjaId: {
             _id: record.ninjaId._id,
             nombre: record.ninjaId.nombre,
             apellido: record.ninjaId.apellido,
-            aldea: record.ninjaId.aldea,
-            rango: record.ninjaId.rango
+            aldea: record.ninjaId.aldea, // Asegúrate que estos campos existan
+            rango: record.ninjaId.rango,
+            currentCondition: record.ninjaId?.currentCondition || 'stable',
           },
           vitals: {
             pulso: record.vitals.pulso,
@@ -98,7 +104,50 @@ export const RelayBox: React.FC = () => {
         }));
 
         setConnectedNinjas(formatted);
-        console.log("Datos formateados:", formatted);
+
+
+        // actualizar selectedNinja de forma segura
+        setSelectedNinja((prev) => {
+          // 1) Si ya hay un ninja seleccionado, intenta actualizar sus datos con el nuevo fetch
+          if (prev.id) {
+            const actualizado = formatted.find((r) => r._id === prev.id);
+            if (actualizado) {
+              return {
+                name: actualizado.ninjaId.nombre,
+                rank: actualizado.ninjaId.rango,
+                heartRate: actualizado.vitals.pulso,
+                temperature: actualizado.vitals.temperatura,
+                chakraLevel: actualizado.vitals.nivel_chakra,
+                pressure: actualizado.vitals.presion,
+                status: actualizado.currentCondition,
+                id: actualizado._id,
+              };
+            }
+            // si el ninja seleccionado ya no existe en la lista, mantenemos el prev (o podrías limpiarlo)
+            return prev;
+          }
+
+          // 2) Si no hay seleccionado y NO hubo selección manual y tampoco auto-seleccion previa, auto-elige el primero
+          if (!didAutoSelectRef.current && !manualSelectRef.current && formatted.length > 0) {
+            didAutoSelectRef.current = true; // registramos que ya hicimos la auto-selección inicial
+            const first = formatted[0];
+            return {
+              name: first.ninjaId.nombre,
+              rank: first.ninjaId.rango,
+              heartRate: first.vitals.pulso,
+              temperature: first.vitals.temperatura,
+              chakraLevel: first.vitals.nivel_chakra,
+              pressure: first.vitals.presion,
+              status: first.currentCondition,
+              id: first._id,
+            };
+          }
+
+          // 3) Si no aplican los casos anteriores, devolvemos prev sin tocarlo
+          return prev;
+        });
+
+
       } catch (error) {
         console.error("Error obteniendo ninjas conectados:", error);
       }
@@ -106,18 +155,17 @@ export const RelayBox: React.FC = () => {
 
     fetchConnectedNinjas(); // Llamada inicial
     const interval = setInterval(fetchConnectedNinjas, 4000); // Repetir cada 4s
-
     return () => clearInterval(interval); // Limpiar al desmontar
-  }, []);
+  }, []);// sin deps
 
 
 
 
-  const getStatusColor = (status: string) => {
-    switch (status) {
-      case 'normal':
+  const getStatusColor = (status?: string) => {
+    switch ((status || '').toLowerCase()) {
+      case 'stable':
         return '#72be9a';
-      case 'warning':
+      case 'urgent':
         return '#f4c0c2';
       case 'critical':
         return '#882238';
@@ -125,46 +173,13 @@ export const RelayBox: React.FC = () => {
         return '#3c5661';
     }
   };
-  useEffect(() => {
-    const fetchData = async () => {
-      try {
-        const res = await axios.get("http://localhost:4000/api/telemedicina/M-TEST");
-        const data = res.data;
-
-        setSelectedNinja((prev) => ({
-          ...prev,
-          name: data.ninjaId?.nombre || 'Desconocido',
-          rank: data.ninjaId?.rango || 'N/A',
-          heartRate: data.vitals?.pulso || 0,
-          temperature: data.vitals?.temperatura || 0,
-          chakraLevel: data.vitals?.nivel_chakra || 0,
-          pressure: data.vitals?.presion || '',
-          status:
-            data.vitals?.estado_general === 'Estable'
-              ? 'normal'
-              : data.vitals?.estado_general === 'Fatigado'
-                ? 'warning'
-                : 'critical',
-          id: data._id || 0,
-        }));
-
-      } catch (error) {
-        console.error("Error obteniendo datos:", error);
-      }
-    };
-
-    fetchData();
-    const interval = setInterval(fetchData, 4000);
-    return () => clearInterval(interval);
-  }, []);
 
 
-
-  const getStatusBgColor = (status: string) => {
-    switch (status) {
-      case 'normal':
+  const getStatusBgColor = (status?: string) => {
+    switch ((status || '').toLowerCase()) {
+      case 'stable':
         return '#e8f5ef';
-      case 'warning':
+      case 'urgent':
         return '#fff9f5';
       case 'critical':
         return '#fff5f5';
@@ -173,16 +188,16 @@ export const RelayBox: React.FC = () => {
     }
   };
 
-  const getStatusText = (status: string) => {
-    switch (status) {
-      case 'normal':
-        return 'Normal';
-      case 'warning':
-        return 'Medio';
+  const getStatusText = (status?: string) => {
+    switch ((status || '').toLowerCase()) {
+      case 'stable':
+        return 'Estable';
+      case 'urgent':
+        return 'Urgente';
       case 'critical':
         return 'Crítico';
       default:
-        return 'Desconocido';
+        return status || 'Desconocido';
     }
   };
 
@@ -208,6 +223,20 @@ export const RelayBox: React.FC = () => {
   const handleSendAlert = () => {
     setAlertSent(true);
     setTimeout(() => setAlertSent(false), 3000);
+  };
+  // marca selección manual y actualiza el estado del ninja seleccionado
+  const handleSelectNinja = (record: TelemedicineRecord) => {
+    manualSelectRef.current = true; // indicamos que el usuario seleccionó manualmente
+    setSelectedNinja({
+      name: record.ninjaId.nombre || 'Desconocido',
+      rank: record.ninjaId?.rango || 'N/A',
+      heartRate: record.vitals?.pulso || 0,
+      temperature: record.vitals?.temperatura || 0,
+      chakraLevel: record.vitals?.nivel_chakra || 0,
+      pressure: record.vitals?.presion || 'N/A',
+      status: record.currentCondition || 'stable',
+      id: record._id,
+    });
   };
 
   return (
@@ -374,7 +403,13 @@ export const RelayBox: React.FC = () => {
                   </div>
                   <div>
                     <p className="text-xs text-[#3c5661] opacity-60">Estado General</p>
-                    <p className="text-[#3c5661]">{selectedNinja.pressure}</p>
+                    <p className="text-[#3c5661]">
+                      {selectedNinja.status === "critical"
+                        ? "Crítico"
+                        : selectedNinja.status === "urgent"
+                          ? "Urgente"
+                          : "Estable"}
+                    </p>
                   </div>
                 </div>
                 <Badge
@@ -386,7 +421,11 @@ export const RelayBox: React.FC = () => {
                   }}
                   className="text-xs px-2 py-1"
                 >
-                  {getStatusText(selectedNinja.status)}
+                  {selectedNinja.status === "critical"
+                    ? "Crítico"
+                    : selectedNinja.status === "urgent"
+                      ? "Urgente"
+                      : "Estable"}
                 </Badge>
               </div>
               <div className="flex items-center gap-2">
@@ -482,21 +521,7 @@ export const RelayBox: React.FC = () => {
             {connectedNinjas.map((record) => (
               <button
                 key={record._id} // ID del registro de telemedicina para el key
-                onClick={() => setSelectedNinja({
-                  name: record.ninjaId.nombre || 'Desconocido',
-                  rank: record.ninjaId?.rango || 'N/A',
-                  heartRate: record.vitals?.pulso || 0,
-                  temperature: record.vitals?.temperatura || 0,
-                  chakraLevel: record.vitals?.nivel_chakra || 0,
-                  pressure: record.vitals?.presion || '',
-                  status:
-                    record.vitals?.estado_general === 'Estable'
-                      ? 'normal'
-                      : record.vitals?.estado_general === 'Fatigado'
-                        ? 'warning'
-                        : 'critical',
-                  id: record._id,
-                })}
+                onClick={() => handleSelectNinja(record)}
                 className={`w-full p-3 rounded-lg border transition-all hover:shadow-md ${selectedNinja.id === record._id
                   ? 'border-[#882238] bg-[#fff9f5]'
                   : 'border-[#f4c0c2] bg-white hover:bg-[#f2ede9]'
@@ -506,20 +531,20 @@ export const RelayBox: React.FC = () => {
                   <div className="flex items-center gap-2">
                     <div
                       className="w-2 h-2 rounded-full animate-pulse"
-                      style={{ backgroundColor: getStatusColor(record.vitals.estado_general) }}
+                      style={{ backgroundColor: getStatusColor(record.currentCondition) }}
                     ></div>
                     <p className="text-xs text-[#3c5661]">{record.ninjaId.nombre}</p>
                   </div>
                   <Badge
                     variant="outline"
                     style={{
-                      backgroundColor: getStatusBgColor(record.vitals.estado_general),
-                      borderColor: getStatusColor(record.vitals.estado_general),
-                      color: getStatusColor(record.vitals.estado_general)
+                      backgroundColor: getStatusBgColor(record.currentCondition),
+                      borderColor: getStatusColor(record.currentCondition),
+                      color: getStatusColor(record.currentCondition)
                     }}
                     className="text-xs px-2 py-0.5"
                   >
-                    {getStatusText(record.vitals.estado_general)}
+                    {getStatusText(record.currentCondition)}
                   </Badge>
                 </div>
                 <div className="flex items-center gap-4 text-xs text-[#3c5661] opacity-60">
