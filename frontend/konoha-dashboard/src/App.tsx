@@ -4,9 +4,13 @@ import { PatientRegistrationForm } from './components/PatientRegistrationForm';
 import { PatientConsultationForm } from './components/PatientConsultationForm';
 import { MedicalDashboard } from './components/MedicalDashboard';
 import { RelayBox } from './components/RelayBox';
+import { FarmaciaMenu } from './components/FarmaciaMenu';
+import { EmitirPrescripcion } from './components/EmitirPrescripcion';
+import { ValidarPrescripcion } from './components/ValidarPresceipcion';
+import { OrdenesAutomaticas } from './components/OrdenesAutomaticas';
 import { Button } from './components/ui/button';
 import { Card } from './components/ui/card';
-import { UserPlus, Search, LayoutDashboard } from 'lucide-react';
+import { UserPlus, Search, LayoutDashboard, Radio, Pill } from 'lucide-react';
 import { ViewType } from './types/view';
 
 
@@ -23,6 +27,14 @@ export default function App() {
         return <PatientConsultationForm />;
       case 'telemedicina':
         return <RelayBox />;
+      case 'farmacia':
+        return <FarmaciaMenu onNavigate={setCurrentView} />;
+      case 'emitir-prescripcion':
+        return <EmitirPrescripcion />;
+      case 'validar-prescripcion':
+        return <ValidarPrescripcion />;
+      case 'ordenes-automaticas':
+        return <OrdenesAutomaticas />;
       default:
         return (
           <Card className="p-8 bg-white text-center max-w-md mx-auto">
@@ -59,8 +71,16 @@ export default function App() {
                 className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
                 variant="outline"
               >
-                <Search className="w-4 h-4" />
+                <Radio className="w-4 h-4" />
                 Telemedicina
+              </Button>
+              <Button
+                onClick={() => setCurrentView('farmacia')}
+                className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+                variant="outline"
+              >
+                <Pill className="w-4 h-4" />
+                Farmacia
               </Button>
             </div>
           </Card>
@@ -86,46 +106,52 @@ export default function App() {
               <Button
                 onClick={() => setCurrentView('dashboard')}
                 variant={currentView === 'dashboard' ? 'default' : 'outline'}
-                className={`text-xs px-3 py-2 rounded-lg ${
-                  currentView === 'dashboard'
-                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
-                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
-                }`}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'dashboard'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
               >
                 Dashboard
               </Button>
               <Button
                 onClick={() => setCurrentView('registration')}
                 variant={currentView === 'registration' ? 'default' : 'outline'}
-                className={`text-xs px-3 py-2 rounded-lg ${
-                  currentView === 'registration'
-                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
-                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
-                }`}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'registration'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
               >
                 Registro
               </Button>
               <Button
                 onClick={() => setCurrentView('consultation')}
                 variant={currentView === 'consultation' ? 'default' : 'outline'}
-                className={`text-xs px-3 py-2 rounded-lg ${
-                  currentView === 'consultation'
-                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
-                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
-                }`}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'consultation'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
               >
                 Consulta
               </Button>
-               <Button
+              <Button
                 onClick={() => setCurrentView('telemedicina')}
                 variant={currentView === 'telemedicina' ? 'default' : 'outline'}
-                className={`text-xs px-3 py-2 rounded-lg ${
-                  currentView === 'telemedicina'
-                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
-                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
-                }`}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'telemedicina'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
               >
                 Telemedicina
+              </Button>
+              <Button
+                onClick={() => setCurrentView('farmacia')}
+                variant={currentView === 'farmacia' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'farmacia' || currentView === 'emitir-prescripcion' || currentView === 'validar-prescripcion' || currentView === 'ordenes-automaticas'
+                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
+              >
+                Farmacia
               </Button>
             </div>
           </div>
