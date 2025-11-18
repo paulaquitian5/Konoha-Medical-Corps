@@ -1,0 +1,166 @@
+import React, { useState } from 'react';
+import './styles/globals.css';
+import { PatientRegistrationForm } from './components/PatientRegistrationForm';
+import { PatientConsultationForm } from './components/PatientConsultationForm';
+import { MedicalDashboard } from './components/MedicalDashboard';
+import { RelayBox } from './components/RelayBox';
+import { FarmaciaMenu } from './components/FarmaciaMenu';
+import { EmitirPrescripcion } from './components/EmitirPrescripcion';
+import { ValidarPrescripcion } from './components/ValidarPresceipcion';
+import { OrdenesAutomaticas } from './components/OrdenesAutomaticas';
+import { Button } from './components/ui/button';
+import { Card } from './components/ui/card';
+import { UserPlus, Search, LayoutDashboard, Radio, Pill } from 'lucide-react';
+import { ViewType } from './types/view';
+
+
+export default function App() {
+  const [currentView, setCurrentView] = useState<ViewType>('menu');
+
+  const renderView = () => {
+    switch (currentView) {
+      case 'dashboard':
+        return <MedicalDashboard onNavigate={setCurrentView} />;
+      case 'registration':
+        return <PatientRegistrationForm />;
+      case 'consultation':
+        return <PatientConsultationForm />;
+      case 'telemedicina':
+        return <RelayBox />;
+      case 'farmacia':
+        return <FarmaciaMenu onNavigate={setCurrentView} />;
+      case 'emitir-prescripcion':
+        return <EmitirPrescripcion />;
+      case 'validar-prescripcion':
+        return <ValidarPrescripcion />;
+      case 'ordenes-automaticas':
+        return <OrdenesAutomaticas />;
+      default:
+        return (
+          <Card className="p-8 bg-white text-center max-w-md mx-auto">
+            <h1 className="font-bold mb-6 text-[#3c5661]">Sistema Médico Ninja</h1>
+            <p className="text-[#3c5661] mb-8 text-sm opacity-75">
+              Seleccione una opción para continuar
+            </p>
+            <div className="space-y-4">
+              <Button
+                onClick={() => setCurrentView('dashboard')}
+                className="w-full bg-[#882238] hover:bg-[#6d1a2c] text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+              >
+                <LayoutDashboard className="w-4 h-4" />
+                Panel de Control
+              </Button>
+              <Button
+                onClick={() => setCurrentView('registration')}
+                className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+                variant="outline"
+              >
+                <UserPlus className="w-4 h-4" />
+                Registro de Pacientes
+              </Button>
+              <Button
+                onClick={() => setCurrentView('consultation')}
+                className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+                variant="outline"
+              >
+                <Search className="w-4 h-4" />
+                Consulta de Pacientes
+              </Button>
+              <Button
+                onClick={() => setCurrentView('telemedicina')}
+                className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+                variant="outline"
+              >
+                <Radio className="w-4 h-4" />
+                Telemedicina
+              </Button>
+              <Button
+                onClick={() => setCurrentView('farmacia')}
+                className="w-full border-[#882238] text-[#882238] hover:bg-[#882238] hover:text-white rounded-lg px-6 py-3 flex items-center justify-center gap-2"
+                variant="outline"
+              >
+                <Pill className="w-4 h-4" />
+                Farmacia
+              </Button>
+            </div>
+          </Card>
+        );
+    }
+  };
+
+  return (
+    <div className="min-h-screen bg-[#f2ede9]">
+      {/* Barra de navegación */}
+      {currentView !== 'menu' && (
+        <div className="bg-white border-b border-[#f4c0c2] px-4 py-3">
+          <div className="container mx-auto flex items-center justify-between">
+            <h1 className="font-bold text-[#3c5661]">Sistema Médico Ninja</h1>
+            <div className="flex gap-2">
+              <Button
+                onClick={() => setCurrentView('menu')}
+                variant="outline"
+                className="text-xs px-3 py-2 rounded-lg border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]"
+              >
+                Menú Principal
+              </Button>
+              <Button
+                onClick={() => setCurrentView('dashboard')}
+                variant={currentView === 'dashboard' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'dashboard'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
+              >
+                Dashboard
+              </Button>
+              <Button
+                onClick={() => setCurrentView('registration')}
+                variant={currentView === 'registration' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'registration'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
+              >
+                Registro
+              </Button>
+              <Button
+                onClick={() => setCurrentView('consultation')}
+                variant={currentView === 'consultation' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'consultation'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
+              >
+                Consulta
+              </Button>
+              <Button
+                onClick={() => setCurrentView('telemedicina')}
+                variant={currentView === 'telemedicina' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'telemedicina'
+                  ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                  : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
+              >
+                Telemedicina
+              </Button>
+              <Button
+                onClick={() => setCurrentView('farmacia')}
+                variant={currentView === 'farmacia' ? 'default' : 'outline'}
+                className={`text-xs px-3 py-2 rounded-lg ${currentView === 'farmacia' || currentView === 'emitir-prescripcion' || currentView === 'validar-prescripcion' || currentView === 'ordenes-automaticas'
+                    ? 'bg-[#882238] hover:bg-[#6d1a2c] text-white'
+                    : 'border-[#f4c0c2] text-[#3c5661] hover:bg-[#f4c0c2] hover:text-[#3c5661]'
+                  }`}
+              >
+                Farmacia
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
+
+      <div className="container mx-auto py-8 px-4">
+        {renderView()}
+      </div>
+    </div>
+  );
+}
