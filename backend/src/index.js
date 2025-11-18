@@ -10,16 +10,12 @@ const server = http.createServer(app); // <-- Crea el servidor HTTP base
 const io = new Server(server, {
   cors: { origin: "*" } // <-- Permite conexión desde cualquier cliente
 });
-const port = process.env.PORT || 4000;
+const port = 4000;
 
 // ==========================
 // 🧩 Middlewares
 // ==========================
-app.use(cors({
-  origin: "https://konoha-medical-corps-frontend.onrender.com",
-  methods: ["GET","POST","PUT","DELETE"],
-  credentials: true
-}));
+app.use(cors());
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json()); 
 
