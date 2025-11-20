@@ -48,7 +48,17 @@ const RecetaSchema = new mongoose.Schema({
   pedidoAutomatico: {
     type: Boolean,
     default: false
+  },
+  // 🚨 CAMPOS AÑADIDOS PARA LA VALIDACIÓN DEL FARMACÉUTICO 🚨
+  status: {
+    type: String,
+    enum: ['pending', 'valid', 'invalid'], // Solo acepta estos 3 estados
+    default: 'pending' // Una receta nueva siempre está pendiente de validar
+  },
+  observacionesFarmaceutico: {
+    type: String,
+    default: null
   }
-});
 
+});
 module.exports = mongoose.model("Receta", RecetaSchema);

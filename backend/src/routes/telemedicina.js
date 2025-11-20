@@ -153,12 +153,33 @@ module.exports = (io) => {
         // Enviar actualización en tiempo real a los clientes conectados
         io.to(registro.missionId).emit("telemedicine_update", registro);
 
-        console.log(`✅ Signos actualizados para ${registro.ninjaId?.nombre || "Desconocido"} (${estadoActual})`);
       }
     } catch (error) {
       console.error("⚠️ Error al actualizar signos vitales automáticamente:", error.message);
     }
   }, 10000); // cada 10 segundos
 
+  // =====================================================
+  // 🧹 Ruta para eliminar registros con ninjaId null
+  // =====================================================
+  router.delete("/limpiar-nulos", async (req, res) => {
+    try {
+      const resultado = await Telemedicine.deleteMany({ ninjaId: null });
+
+      res.json({
+        exito: true,
+        eliminados: resultado.deletedCount,
+        mensaje: `Se eliminaron ${resultado.deletedCount} registros sin ninjaId`
+      });
+    } catch (error) {
+      res.status(500).json({
+        exito: false,
+        mensaje: "Error eliminando registros nulos",
+        error: error.message
+      });
+    }
+  });
+
   return router;
+
 };

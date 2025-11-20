@@ -73,7 +73,7 @@ export const RelayBox: React.FC = () => {
   useEffect(() => {
     const fetchConnectedNinjas = async () => {
       try {
-        const res = await axios.get("http://localhost:4000/api/telemedicina/M-TEST");
+        const res = await axios.get("http://localhost:3000/api/telemedicina/M-TEST");
         console.log("Respuesta completa del backend:", res.data);
 
         const data = res.data.data || [];
@@ -154,7 +154,7 @@ export const RelayBox: React.FC = () => {
     };
 
     fetchConnectedNinjas(); // Llamada inicial
-    const interval = setInterval(fetchConnectedNinjas, 4000); // Repetir cada 4s
+    const interval = setInterval(fetchConnectedNinjas, 3000); // Repetir cada 4s
     return () => clearInterval(interval); // Limpiar al desmontar
   }, []);// sin deps
 

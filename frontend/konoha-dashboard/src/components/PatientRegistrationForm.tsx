@@ -267,7 +267,7 @@ export const PatientRegistrationForm: React.FC = () => {
 
 
       //Crear paciente
-      const response = await axios.post('http://localhost:4000/api/pacientes', pacientePayload);
+      const response = await axios.post('http://localhost:3000/api/pacientes', pacientePayload);
       console.log('Paciente guardado:', response.data);
       const pacienteId = response.data.id;
 
@@ -316,8 +316,8 @@ export const PatientRegistrationForm: React.FC = () => {
       };
 
       // Crear registro de telemedicina
-      //await axios.post('http://localhost:4000/api/telemedicina', registroTelemedicina);
-      await axios.post("http://localhost:4000/api/telemedicina", {
+      //await axios.post('http://localhost:3000/api/telemedicina', registroTelemedicina);
+      await axios.post("http://localhost:3000/api/telemedicina", {
         ninjaId: response.data.paciente._id,
         vitals: {
           pulso: 80, // este es el que sí espera el modelo

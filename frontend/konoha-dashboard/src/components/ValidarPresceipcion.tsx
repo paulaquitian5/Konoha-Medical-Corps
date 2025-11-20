@@ -1,58 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Separator } from './ui/separator';
 import { Badge } from './ui/badge';
 import { CheckCircle, XCircle, Clock, FileCheck, User, Pill, Calendar } from 'lucide-react';
 
-// Mock data para demostración
-const mockPrescripciones = [
-  {
-    id: 'RX-2025-001',
-    patientName: 'Naruto Uzumaki',
-    patientId: 'NJ-12345',
-    diagnosis: 'Lesión menor en entrenamiento de taijutsu. Contusión muscular en brazo derecho.',
-    medication: 'Pomada de Chakra Regenerativo, Píldoras de Soldado nivel 1',
-    dosage: '2 aplicaciones diarias de pomada, 1 píldora cada 12 horas',
-    duration: '5 días',
-    instructions: 'Evitar entrenamientos intensos durante el periodo de tratamiento. Aplicar pomada después de las comidas.',
-    doctorName: 'Sakura Haruno',
-    doctorSignature: 'SH-MED-2025',
-    medicalSeal: 'KONOHA-9847',
-    date: '12 de Noviembre, 2025',
-    status: 'valid'
-  },
-  {
-    id: 'RX-2025-002',
-    patientName: 'Sasuke Uchiha',
-    patientId: 'NJ-12346',
-    diagnosis: 'Agotamiento de chakra post-misión. Requiere reposo y recuperación energética.',
-    medication: 'Suplemento de Chakra Concentrado, Té de Hierbas Medicinales',
-    dosage: '1 suplemento cada 8 horas, té 3 veces al día',
-    duration: '3 días',
-    instructions: 'Reposo absoluto. Hidratación constante. No utilizar técnicas de Sharingan durante el tratamiento.',
-    doctorName: 'Tsunade Senju',
-    doctorSignature: 'TS-MED-2025',
-    medicalSeal: 'KONOHA-0001',
-    date: '11 de Noviembre, 2025',
-    status: 'pending'
-  },
-  {
-    id: 'RX-2025-003',
-    patientName: 'Rock Lee',
-    patientId: 'NJ-12347',
-    diagnosis: 'Fractura menor en tobillo izquierdo durante entrenamiento.',
-    medication: 'Píldoras de Recuperación Ósea, Vendaje Médico Ninja',
-    dosage: '2 píldoras cada 6 horas',
-    duration: '14 días',
-    instructions: 'Inmovilización del tobillo. No realizar entrenamientos físicos hasta nueva orden médica.',
-    doctorName: 'Shizune',
-    doctorSignature: 'SZ-MED-2025',
-    medicalSeal: 'KONOHA-5623',
-    date: '10 de Noviembre, 2025',
-    status: 'invalid'
-  }
-];
 
 type StatusType = 'valid' | 'pending' | 'invalid';
 
@@ -75,12 +27,12 @@ const StatusBadge: React.FC<{ status: StatusType }> = ({ status }) => {
     }
   };
 
-  const config = statusConfig[status];
+  const config = statusConfig[status] || statusConfig.pending;
   const Icon = config.icon;
 
   return (
-    <Badge 
-      variant="outline" 
+    <Badge
+      variant="outline"
       className={`${config.className} px-3 py-1 flex items-center gap-2 w-fit`}
     >
       <Icon className="w-3 h-3" />
@@ -94,6 +46,14 @@ interface DetailRowProps {
   label: string;
   value: string;
 }
+const doctors = [
+  { id: 1, nombre: "Tsunade", firmaDigital: "tsunade-001", sello: "TS" },
+  { id: 2, nombre: "Sakura Haruno", firmaDigital: "sakura-002", sello: "SH" },
+  { id: 3, nombre: "Ino Yamanaka", firmaDigital: "ino-003", sello: "IY" },
+  { id: 4, nombre: "Shizune", firmaDigital: "shizune-004", sello: "SZ" },
+  { id: 5, nombre: "Rin Nohara", firmaDigital: "rin-005", sello: "RN" },
+  { id: 6, nombre: "Yugao Uzuki", firmaDigital: "yugao-006", sello: "YU" }
+];
 
 const DetailRow: React.FC<DetailRowProps> = ({ icon: Icon, label, value }) => (
   <div className="flex gap-3">
@@ -108,14 +68,54 @@ const DetailRow: React.FC<DetailRowProps> = ({ icon: Icon, label, value }) => (
 );
 
 export const ValidarPrescripcion: React.FC = () => {
-  const [selectedPrescripcion, setSelectedPrescripcion] = useState<number>(0);
+  const [prescripciones, setPrescripciones] = useState<any[]>([]);
+  const [selectedPrescripcion, setSelectedPrescripcion] = useState(0);
+
   const [observaciones, setObservaciones] = useState('');
   const [showObservaciones, setShowObservaciones] = useState(false);
 
-  const currentPrescripcion = mockPrescripciones[selectedPrescripcion];
+  // 🔥 FETCH REAL AL BACKEND
+  useEffect(() => {
+    const fetchPrescripciones = async () => {
+      try {
+        const res = await fetch("http://localhost:3000/api/medicamentos");
+        const data = await res.json();
+        setPrescripciones(data.data);
+      } catch (error) {
+        console.error("Error fetching medicamentos:", error);
+      }
+    };
+
+    fetchPrescripciones();
+  }, []);
+
+  if (prescripciones.length === 0) {
+    return (
+      <div className="max-w-5xl mx-auto p-6 text-center text-[#3c5661]">
+        Cargando prescripciones…
+      </div>
+    );
+  }
+
+  const currentPrescripcion = prescripciones[selectedPrescripcion];
+
+  const doctorInfo = doctors.find(
+    d => d.id === Number(currentPrescripcion.doctorId)
+  );
+
+  // Adaptar medicamentos
+  const medicamentosTexto = currentPrescripcion.medicamentos
+    .map((m: any) => m.nombre)
+    .join(', ');
+
+  const dosis = currentPrescripcion.medicamentos[0]?.dosis || "—";
+  const duracion = currentPrescripcion.medicamentos[0]?.duracion || "—";
+
+  const fecha = new Date(currentPrescripcion.fechaCreacion)
+    .toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
 
   const handleSaveObservaciones = () => {
-    console.log('Observaciones guardadas:', observaciones);
+    console.log("Observaciones guardadas:", observaciones);
     setShowObservaciones(false);
     setObservaciones('');
   };
@@ -126,20 +126,19 @@ export const ValidarPrescripcion: React.FC = () => {
       <Card className="p-6 bg-white">
         <h2 className="font-bold mb-4 text-[#3c5661]">Seleccionar Prescripción</h2>
         <div className="grid grid-cols-1 md:grid-cols-3 gap-3">
-          {mockPrescripciones.map((prescripcion, index) => (
+          {prescripciones.map((prescripcion, index) => (
             <button
               key={prescripcion.id}
               onClick={() => setSelectedPrescripcion(index)}
-              className={`p-4 border rounded-lg text-left transition-all duration-200 ${
-                selectedPrescripcion === index
-                  ? 'border-[#882238] bg-[#882238] bg-opacity-5'
-                  : 'border-[#f4c0c2] hover:border-[#882238]'
-              }`}
+              className={`p-4 border rounded-lg text-left transition-all duration-200 ${selectedPrescripcion === index
+                ? 'border-[#882238] bg-[#882238] bg-opacity-5'
+                : 'border-[#f4c0c2] hover:border-[#882238]'
+                }`}
             >
-              <p className="font-medium text-xs text-[#3c5661] mb-1">{prescripcion.id}</p>
-              <p className="text-xs text-[#3c5661] opacity-60">{prescripcion.patientName}</p>
+              <p className="font-medium text-xs text-[#3c5661] mb-1">{prescripcion._id}</p>
+              <p className="text-xs text-[#3c5661] opacity-60">{prescripcion.pacienteNombre}</p>
               <div className="mt-2">
-                <StatusBadge status={prescripcion.status as StatusType} />
+                <StatusBadge status={prescripcion.status} />
               </div>
             </button>
           ))}
@@ -155,10 +154,10 @@ export const ValidarPrescripcion: React.FC = () => {
             </div>
             <div>
               <h1 className="font-bold text-[#3c5661]">Prescripción Médica</h1>
-              <p className="text-xs text-[#3c5661] opacity-60">{currentPrescripcion.id}</p>
+              <p className="text-xs text-[#3c5661] opacity-60">{currentPrescripcion._id}</p>
             </div>
           </div>
-          <StatusBadge status={currentPrescripcion.status as StatusType} />
+          <StatusBadge status={currentPrescripcion.status} />
         </div>
 
         <Separator className="my-6" />
@@ -170,13 +169,20 @@ export const ValidarPrescripcion: React.FC = () => {
             <DetailRow
               icon={User}
               label="Nombre del Paciente"
-              value={currentPrescripcion.patientName}
+              value={currentPrescripcion.pacienteNombre}
             />
             <DetailRow
               icon={FileCheck}
               label="ID del Paciente"
               value={currentPrescripcion.patientId}
             />
+            <DetailRow icon={Calendar} label="Fecha de emisión" value={new Date(currentPrescripcion.fechaCreacion).toLocaleString("es-CO", {
+              year: "numeric",
+              month: "long",
+              day: "numeric",
+              hour: "2-digit",
+              minute: "2-digit"
+            })} />
           </div>
         </div>
 
@@ -186,7 +192,7 @@ export const ValidarPrescripcion: React.FC = () => {
         <div className="mb-6">
           <h2 className="font-bold mb-4 text-[#3c5661]">Diagnóstico Médico</h2>
           <div className="bg-[#f2ede9] rounded-lg p-4">
-            <p className="text-xs text-[#3c5661]">{currentPrescripcion.diagnosis}</p>
+            <p className="text-xs text-[#3c5661]">{currentPrescripcion.observaciones}</p>
           </div>
         </div>
 
@@ -199,24 +205,18 @@ export const ValidarPrescripcion: React.FC = () => {
             <DetailRow
               icon={Pill}
               label="Medicamentos"
-              value={currentPrescripcion.medication}
+              value={medicamentosTexto}
             />
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               <div className="bg-[#f2ede9] rounded-lg p-4">
                 <p className="text-xs font-medium text-[#3c5661] opacity-60 mb-1">Dosis</p>
-                <p className="text-xs text-[#3c5661]">{currentPrescripcion.dosage}</p>
+                <p className="text-xs text-[#3c5661]">{dosis}</p>
               </div>
               <div className="bg-[#f2ede9] rounded-lg p-4">
                 <p className="text-xs font-medium text-[#3c5661] opacity-60 mb-1">Duración</p>
-                <p className="text-xs text-[#3c5661]">{currentPrescripcion.duration}</p>
+                <p className="text-xs text-[#3c5661]">{duracion}</p>
               </div>
             </div>
-            {currentPrescripcion.instructions && (
-              <div className="bg-[#f4c0c2] bg-opacity-20 border border-[#f4c0c2] rounded-lg p-4">
-                <p className="text-xs font-medium text-[#3c5661] mb-2">Instrucciones Adicionales</p>
-                <p className="text-xs text-[#3c5661]">{currentPrescripcion.instructions}</p>
-              </div>
-            )}
           </div>
         </div>
 
@@ -229,21 +229,27 @@ export const ValidarPrescripcion: React.FC = () => {
             <DetailRow
               icon={User}
               label="Médico Tratante"
-              value={currentPrescripcion.doctorName}
+              value={doctorInfo?.nombre || "No disponible"}
             />
             <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
               <div className="bg-[#f2ede9] rounded-lg p-4">
                 <p className="text-xs font-medium text-[#3c5661] opacity-60 mb-1">Firma Digital</p>
-                <p className="text-xs text-[#3c5661] font-mono">{currentPrescripcion.doctorSignature}</p>
+                <p className="text-xs text-[#3c5661] font-mono">{doctorInfo?.firmaDigital || "No disponible"}</p>
               </div>
               <div className="bg-[#f2ede9] rounded-lg p-4">
                 <p className="text-xs font-medium text-[#3c5661] opacity-60 mb-1">Sello Médico</p>
-                <p className="text-xs text-[#3c5661] font-mono">{currentPrescripcion.medicalSeal}</p>
+                <p className="text-xs text-[#3c5661] font-mono">{doctorInfo?.sello || "No disponible"}</p>
               </div>
               <DetailRow
                 icon={Calendar}
                 label="Fecha de Emisión"
-                value={currentPrescripcion.date}
+                value={new Date(currentPrescripcion.fechaCreacion).toLocaleString("es-CO", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                })}
               />
             </div>
           </div>
