@@ -22,6 +22,9 @@ import {
   PieChart, Pie, Cell,
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer
 } from 'recharts';
+import { io } from "socket.io-client";
+export const socket = io(import.meta.env.VITE_API_URL, { transports: ["websocket"] });
+
 
 interface Chakra {
   tipo: string;
@@ -38,7 +41,7 @@ interface Paciente {
   rango: string;
   grupoSanguineo?: string;
   chakra?: Chakra;
-  currentCondition: "critical" | "moderate" | "stable";
+  currentCondition: "critical" | "urgent" | "stable";
   createdAt?: string;
 }
 
@@ -120,22 +123,33 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
     ];
     setQuickActions(acciones);
 
-    const fetchNotifications = async () => {
-      try {
-        const res = await axios.get(`${import.meta.env.VITE_API_URL}/api/emergencias`);
-        if (res.data?.data) {
-          const mapped = res.data.data.map((item: any) => ({
-            id: item._id,
-            message: item.descripcion,
-            time: new Date(item.creadoEn).toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' }),
-            type: item.nivel,
-          }));
-          setNotifications(mapped);
-        }
-      } catch (error) {
-        console.error(' Error al cargar notificaciones:', error);
-      }
-    };
+    // =======================
+    //   Cargar notificaciones
+    // =======================
+    console.log("Conectando al socket...");
+    socket.on("connect", () => {
+      console.log("⚡ Dashboard conectado al socket:", socket.id);
+    });
+
+    socket.on("alerta_medica", (nueva) => {
+      console.log("🚨 ALERTA RECIBIDA:", nueva);
+      setNotifications((prev) => [
+        {
+          id: nueva.alertaId,
+          message: nueva.descripcion,
+          time: new Date(nueva.creadoEn).toLocaleTimeString("es-ES", {
+            hour: "2-digit",
+            minute: "2-digit",
+          }),
+          type: nueva.nivel,
+        },
+        ...prev,
+      ]);
+    });
+
+    // =======================
+    //   Cargar pacientes
+    // =======================
 
     const fetchPacientes = async () => {
 
@@ -178,8 +192,12 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
       }
     };
 
-    fetchNotifications();
     fetchPacientes();
+
+
+    return () => {
+      socket.off("alerta_medica");
+    };
 
   }, []);
 
@@ -188,7 +206,7 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
   // 🔹 Calcular estadísticas según el nivel de chakra
   const casosCriticos = pacientes.filter(p => p.currentCondition === "critical").length;
   const casosEstables = pacientes.filter(p => p.currentCondition === "stable").length;
-  const casosModerados = pacientes.filter(p => p.currentCondition === "moderate").length;
+  const casosModerados = pacientes.filter(p => p.currentCondition === "urgent").length;
 
 
   const pacientesActivos = pacientes.length;
@@ -203,7 +221,7 @@ export const MedicalDashboard: React.FC<MedicalDashboardProps> = ({ onNavigate, 
 
   const patientStatusData = [
     { name: 'Crítico', value: casosCriticos, color: 'var(--destructive)' },
-    { name: 'Normal', value: casosModerados, color: 'var(--chart-2)' },
+    { name: 'Urgente', value: casosModerados, color: 'var(--chart-2)' },
     { name: 'Estable', value: casosEstables, color: 'var(--chart-1)' }
   ];
 

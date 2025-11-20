@@ -15,6 +15,7 @@ import {
   Send,
   AlertCircle
 } from 'lucide-react';
+import { io } from "socket.io-client";
 
 interface Vitals {
   pulso: number;
@@ -71,6 +72,11 @@ export const RelayBox: React.FC = () => {
   const didAutoSelectRef = useRef(false);
   const manualSelectRef = useRef(false);
   useEffect(() => {
+    const socket = io("http://localhost:3000");
+
+    socket.on("connect", () => {
+      console.log("RelayBox conectado a socket.io");
+    });
     const fetchConnectedNinjas = async () => {
       try {
         const res = await axios.get("http://localhost:3000/api/telemedicina/M-TEST");
@@ -82,15 +88,25 @@ export const RelayBox: React.FC = () => {
         const formatted: TelemedicineRecord[] = data.map((record: any) => ({
           _id: record._id,               // ID del registro de telemedicina
           missionId: record.missionId,   // missionId del backend
-          currentCondition: record.ninjaId.currentCondition, // Condición principal
-          ninjaId: {
-            _id: record.ninjaId._id,
-            nombre: record.ninjaId.nombre,
-            apellido: record.ninjaId.apellido,
-            aldea: record.ninjaId.aldea, // Asegúrate que estos campos existan
-            rango: record.ninjaId.rango,
-            currentCondition: record.ninjaId?.currentCondition || 'stable',
-          },
+          currentCondition: record.ninjaId?.currentCondition || 'stable',
+          ninjaId: record.ninjaId
+            ? {
+              _id: record.ninjaId._id || '',
+              nombre: record.ninjaId.nombre || 'Desconocido',
+              apellido: record.ninjaId.apellido || '',
+              aldea: record.ninjaId.aldea || '',
+              rango: record.ninjaId.rango || '',
+              currentCondition: record.ninjaId.currentCondition || 'stable',
+            }
+            : {
+              _id: '',
+              nombre: 'Desconocido',
+              apellido: '',
+              aldea: '',
+              rango: '',
+              currentCondition: 'stable',
+            },
+
           vitals: {
             pulso: record.vitals.pulso,
             presion: record.vitals.presion,
@@ -149,6 +165,7 @@ export const RelayBox: React.FC = () => {
 
 
       } catch (error) {
+
         console.error("Error obteniendo ninjas conectados:", error);
       }
     };
@@ -220,10 +237,40 @@ export const RelayBox: React.FC = () => {
     return 'normal';
   };
 
-  const handleSendAlert = () => {
-    setAlertSent(true);
-    setTimeout(() => setAlertSent(false), 3000);
+  const handleSendAlert = async () => {
+    try {
+      const selectedRecord = connectedNinjas.find(
+        (n) => n._id === selectedNinja.id
+      );
+
+      if (!selectedRecord) {
+        console.error("❌ No se encontró el registro del ninja seleccionado.");
+        return;
+      }
+
+      const API_URL = import.meta.env.VITE_API_URL || "http://localhost:2000";
+
+      const body = {
+        patientId: selectedRecord.ninjaId?._id, // <-- EL ID REAL DEL PACIENTE
+        missionId: selectedRecord.missionId,
+        tipoAlerta: "vitales",
+        nivel: "crítico",
+        descripcion: "El paciente requiere atención urgente"
+      };
+
+      const res = await axios.post(`${API_URL}/api/emergencia/alert`, body);
+
+      console.log("Alerta enviada:", res.data);
+
+      setAlertSent(true);
+      setTimeout(() => setAlertSent(false), 3000);
+
+    } catch (error) {
+      console.error("❌ Error al enviar alerta:", error);
+    }
   };
+
+
   // marca selección manual y actualiza el estado del ninja seleccionado
   const handleSelectNinja = (record: TelemedicineRecord) => {
     manualSelectRef.current = true; // indicamos que el usuario seleccionó manualmente
@@ -475,6 +522,13 @@ export const RelayBox: React.FC = () => {
           </Card>
 
           {/* Botón de Alerta */}
+          {alertSent && (
+            <div className="mb-4 p-3 bg-[#e8f5ef] text-[#237a4c] border border-[#72be9a] rounded-lg flex items-center gap-2">
+              <AlertCircle className="w-4 h-4" />
+              <span>Alerta médica enviada con éxito.</span>
+            </div>
+          )}
+
           <Card className="p-6 bg-white">
             <div className="flex items-center justify-between">
               <div>
@@ -483,6 +537,7 @@ export const RelayBox: React.FC = () => {
                   Invocar a Katsuyu para asistencia médica inmediata
                 </p>
               </div>
+
               <Button
                 onClick={handleSendAlert}
                 className={`${alertSent

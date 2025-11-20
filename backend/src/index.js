@@ -16,7 +16,23 @@ const port = process.env.PORT || 3000;
 // ==========================
 // 🧩 Middlewares
 // ==========================
-app.use(cors());
+const allowedOrigins = process.env.NODE_ENV === 'production'
+  ? ['https://konoha-medical-corps-frontend.onrender.com']
+  : ['http://localhost:5173', 'http://localhost:3000', 'http://localhost:5174'];
+
+app.use(cors({
+  origin: function (origin, callback) {
+    // Permite peticiones sin origin (como Postman o curl)
+    if (!origin) return callback(null, true);
+    
+    if (allowedOrigins.indexOf(origin) !== -1) {
+      callback(null, true);
+    } else {
+      callback(new Error('No permitido por CORS'));
+    }
+  },
+  credentials: true
+}));
 app.use(express.urlencoded({ extended: false }));
 app.use(express.json()); 
 
