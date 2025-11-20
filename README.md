@@ -6,16 +6,17 @@
 - **URL del repositorio:**  
 
   - [https://github.com/sara446/Konoha-Medical-Corps](https://github.com/sara446/Konoha-Medical-Corps)
-
+  
 - **Propósito:**  
 
   - Centralizar el código fuente y documentación.  
-  - Gestionar ramas de desarrollo y despliegue.  
-  - Automatizar pruebas y despliegues mediante CI/CD.  
+  - Gestionar ramas de desarrollo y ejecucion.  
+  - Automatizar pruebas.  
+
 
 ---
 
-## ⚙️ Configuración y ejecución local
+## ⚙️ Configuración y ejecución local (Backend)
 
 ### Requisitos previos
 - **Node.js v18+**  
@@ -88,9 +89,11 @@ npm test
 
 ---
 
-## 🚀 Despliegue (Render)
+## 🚀 Ejecución del sistema
 
-El sistema se encuentra desplegado de forma estable en **Render**, tanto el backend como el frontend, comunicándose mediante las URLs públicas del servicio.
+El sistema está configurado para funcionar completamente en un entorno
+local utilizando rutas locales y variables de entorno definidas por el
+usuario.
 
 El **frontend** realiza peticiones al backend usando la variable de entorno `VITE_API_URL`, apuntando al servidor backend.
 
@@ -100,24 +103,24 @@ El **frontend** realiza peticiones al backend usando la variable de entorno `VIT
 
 - **Backend:** Node.js + Express + MongoDB  
 - **Frontend:** Vite + React  
-- **Despliegue:** Render (ambos servicios desde la rama `dev`)   
+- **Despliegue:** Entorno local (rutas `localhost`)
 
 ---
 
-## 🌐 URLs activas
+## 🌐 URLs del entorno local
 
 - **Backend (API REST):**  
-  [https://konoha-medical-corps-backend.onrender.com/](https://konoha-medical-corps-backend.onrender.com/)  
-  > Esta dirección corresponde al servidor del sistema, por lo que no muestra una interfaz visual. 
+  [http://localhost:3000](http://localhost:3000)  
+  > Esta dirección corresponde al servidor del sistema, por lo que no muestra una interfaz visual.
 
   > Es completamente normal que aparezca el mensaje **“Cannot GET /”**, ya que el backend únicamente responde a solicitudes de la API mediante rutas como `/api/pacientes` o `/api/emergencia`.
 
 - **Frontend (Interfaz de usuario):**  
-  [https://konoha-medical-corps-frontend.onrender.com](https://konoha-medical-corps-frontend.onrender.com)  
+  [http://localhost:5173](http://localhost:5173)  
   > Esta es la interfaz visible para los usuarios finales, encargada de consumir los servicios del backend.
 
 
-**Estado actual:** ✅ Ambos entornos desplegados y comunicándose correctamente mediante peticiones HTTP.
+**Estado actual:** ✅ Ambos entornos comunicándose correctamente mediante peticiones HTTP.
 
 ---
 
@@ -200,4 +203,4 @@ git branch
 | **Autenticación** | JWT (jsonwebtoken) | Acceso seguro para médicos y pacientes |
 | **Configuración del entorno** | dotenv | Manejo de variables ambientales |
 | **Utilidades** | uuid, bcryptjs | Identificadores únicos y seguridad |
-| **Despliegue** | Render | Alojamiento y ejecución en producción |
+| **Ejecucion** | Localhost | Demostración y funcionamiento del sistema |
