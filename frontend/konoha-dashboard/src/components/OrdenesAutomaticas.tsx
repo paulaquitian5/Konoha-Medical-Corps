@@ -1,135 +1,58 @@
 import React, { useState } from 'react';
+import { useEffect } from 'react';
 import { Button } from './ui/button';
 import { Card } from './ui/card';
 import { Badge } from './ui/badge';
 import { Input } from './ui/input';
-import { 
-  Package, 
-  Search, 
-  RefreshCw, 
-  CheckCircle, 
-  Clock, 
+import {
+  Package,
+  Search,
+  RefreshCw,
+  CheckCircle,
+  Clock,
   XCircle,
   AlertCircle,
   Filter
 } from 'lucide-react';
 
-// Mock data para órdenes
-const mockOrdenes = [
-  {
-    id: 'ORD-2025-1001',
-    patientName: 'Naruto Uzumaki',
-    medication: 'Pomada de Chakra Regenerativo',
-    quantity: '2 unidades',
-    status: 'completed',
-    date: '12 Nov 2025, 10:30',
-    priority: 'normal'
-  },
-  {
-    id: 'ORD-2025-1002',
-    patientName: 'Sasuke Uchiha',
-    medication: 'Suplemento de Chakra Concentrado',
-    quantity: '3 cajas',
-    status: 'processing',
-    date: '12 Nov 2025, 09:15',
-    priority: 'high'
-  },
-  {
-    id: 'ORD-2025-1003',
-    patientName: 'Sakura Haruno',
-    medication: 'Píldoras de Soldado nivel 2',
-    quantity: '1 frasco',
-    status: 'pending',
-    date: '12 Nov 2025, 08:45',
-    priority: 'normal'
-  },
-  {
-    id: 'ORD-2025-1004',
-    patientName: 'Rock Lee',
-    medication: 'Píldoras de Recuperación Ósea',
-    quantity: '4 frascos',
-    status: 'processing',
-    date: '11 Nov 2025, 16:20',
-    priority: 'urgent'
-  },
-  {
-    id: 'ORD-2025-1005',
-    patientName: 'Hinata Hyuga',
-    medication: 'Té de Hierbas Medicinales',
-    quantity: '1 caja',
-    status: 'completed',
-    date: '11 Nov 2025, 14:50',
-    priority: 'normal'
-  },
-  {
-    id: 'ORD-2025-1006',
-    patientName: 'Neji Hyuga',
-    medication: 'Vendaje Médico Ninja',
-    quantity: '5 rollos',
-    status: 'cancelled',
-    date: '11 Nov 2025, 12:30',
-    priority: 'low'
-  },
-  {
-    id: 'ORD-2025-1007',
-    patientName: 'Gaara',
-    medication: 'Antídoto Universal nivel 3',
-    quantity: '2 dosis',
-    status: 'processing',
-    date: '10 Nov 2025, 18:00',
-    priority: 'urgent'
-  },
-  {
-    id: 'ORD-2025-1008',
-    patientName: 'Kakashi Hatake',
-    medication: 'Suero de Recuperación Rápida',
-    quantity: '3 unidades',
-    status: 'pending',
-    date: '10 Nov 2025, 15:30',
-    priority: 'high'
-  }
-];
 
-type OrderStatus = 'pending' | 'processing' | 'completed' | 'cancelled';
+type OrderStatus = 'pending' | 'valid' | 'invalid';
 type OrderPriority = 'low' | 'normal' | 'high' | 'urgent';
+
+interface Medicamento {
+  nombre: string;
+  dosis: string;
+  frecuencia: string;
+  duracion: string;
+}
+
+interface Orden {
+  _id: string;
+  patientId: string;           // ID del paciente
+  pacienteNombre?: string;
+  doctorId: string;            // ID del doctor
+  medicamentos: Medicamento[];
+  observaciones: string;
+  firmaDigital: string;
+  fechaCreacion: string;       // se puede convertir a string legible
+  pedidoAutomatico: boolean;
+  status: 'pending' | 'valid' | 'invalid';
+  observacionesFarmaceutico?: string | null;
+}
+
 
 const StatusBadge: React.FC<{ status: OrderStatus }> = ({ status }) => {
   const statusConfig = {
-    pending: {
-      label: 'Pendiente',
-      icon: Clock,
-      className: 'bg-[#f4c0c2] bg-opacity-20 text-[#882238] border-[#f4c0c2]'
-    },
-    processing: {
-      label: 'En Proceso',
-      icon: RefreshCw,
-      className: 'bg-[#882238] bg-opacity-10 text-[#882238] border-[#882238]'
-    },
-    completed: {
-      label: 'Completada',
-      icon: CheckCircle,
-      className: 'bg-[#72be9a] bg-opacity-10 text-[#72be9a] border-[#72be9a]'
-    },
-    cancelled: {
-      label: 'Cancelada',
-      icon: XCircle,
-      className: 'bg-[#3c5661] bg-opacity-10 text-[#3c5661] border-[#3c5661]'
-    }
+    pending: { label: 'Pendiente', className: 'bg-[#f4c0c2] ...', icon: Clock },
+    valid: { label: 'Validada', className: 'bg-[#72be9a] ...', icon: CheckCircle },
+    invalid: { label: 'Inválida', className: 'bg-[#882238] ...', icon: XCircle },
   };
-
   const config = statusConfig[status];
   const Icon = config.icon;
-
-  return (
-    <Badge 
-      variant="outline" 
-      className={`${config.className} px-2 py-1 flex items-center gap-1 w-fit text-xs`}
-    >
-      <Icon className="w-3 h-3" />
-      {config.label}
-    </Badge>
-  );
+  return <Badge className={config.className}><Icon />{config.label}</Badge>;
 };
+
+
 
 const PriorityIndicator: React.FC<{ priority: OrderPriority }> = ({ priority }) => {
   const priorityConfig = {
@@ -143,47 +66,119 @@ const PriorityIndicator: React.FC<{ priority: OrderPriority }> = ({ priority }) 
 
   return (
     <div className="flex items-center gap-2">
-      <div 
-        className="w-2 h-2 rounded-full" 
+      <div
+        className="w-2 h-2 rounded-full"
         style={{ backgroundColor: config.color }}
       />
       <span className="text-xs text-[#3c5661] opacity-60">{config.label}</span>
     </div>
   );
+
 };
 
 export const OrdenesAutomaticas: React.FC = () => {
+  const [ordenes, setOrdenes] = useState<Orden[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterStatus, setFilterStatus] = useState<OrderStatus | 'all'>('all');
+  const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
+  const [modalOpen, setModalOpen] = useState(false);
+  const [ordenSeleccionada, setOrdenSeleccionada] = useState<Orden | null>(null);
 
-  const handleRefresh = () => {
-    setIsRefreshing(true);
-    // Simular actualización
-    setTimeout(() => {
-      setIsRefreshing(false);
-    }, 1000);
+
+  const handleAbrirModal = (orden: Orden) => {
+    setOrdenSeleccionada(orden);
+    setModalOpen(true);
   };
 
+  const handlePedidoAutomatico = async () => {
+    if (!ordenSeleccionada) return;
+
+    try {
+      const res = await fetch("http://localhost:3000/api/medicamentos", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ recetaId: ordenSeleccionada._id })
+      });
+      const data = await res.json();
+
+      if (data.exito) {
+        // Actualizamos el flag localmente para reflejarlo en la UI
+        setOrdenes(prev => prev.map(o =>
+          o._id === ordenSeleccionada._id ? { ...o, pedidoAutomatico: true } : o
+        ));
+        alert("Pedido automático enviado correctamente");
+      } else {
+        alert("Error: " + data.mensaje);
+      }
+    } catch (error) {
+      console.error("Error al enviar pedido:", error);
+      alert("Error al enviar pedido, revisa la consola");
+    } finally {
+      setModalOpen(false);
+      setOrdenSeleccionada(null);
+    }
+  };
+  // 🔥 Traer órdenes del backend
+  useEffect(() => {
+    const fetchOrdenes = async () => {
+      try {
+        const res = await fetch('http://localhost:3000/api/medicamentos');
+        const data = await res.json();
+        if (data.exito && Array.isArray(data.data)) {
+          setOrdenes(data.data);
+        } else {
+          console.error('Error al cargar órdenes:', data.mensaje);
+        }
+      } catch (error) {
+        console.error('Error fetching orders:', error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    fetchOrdenes();
+  }, []);
+
   // Filtrar órdenes
-  const filteredOrdenes = mockOrdenes.filter(orden => {
-    const matchesSearch = 
-      orden.id.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      orden.patientName.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      orden.medication.toLowerCase().includes(searchTerm.toLowerCase());
-    
-    const matchesFilter = filterStatus === 'all' || orden.status === filterStatus;
-    
+  const filteredOrdenes = ordenes.filter(o => {
+    const matchesSearch =
+      o._id.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      o.patientId.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      o.medicamentos.some(med =>
+        med.nombre.toLowerCase().includes(searchTerm.toLowerCase())
+      );
+    const matchesFilter = filterStatus === 'all' || o.status === filterStatus;
     return matchesSearch && matchesFilter;
   });
 
-  // Estadísticas
-  const stats = {
-    total: mockOrdenes.length,
-    pending: mockOrdenes.filter(o => o.status === 'pending').length,
-    processing: mockOrdenes.filter(o => o.status === 'processing').length,
-    completed: mockOrdenes.filter(o => o.status === 'completed').length
+  if (isLoading) return <p className="text-center text-[#3c5661] py-6">Cargando órdenes...</p>;
+
+  const handleRefresh = async () => {
+    setIsRefreshing(true);
+    try {
+      const res = await fetch('http://localhost:3000/api/medicamentos');
+      const data = await res.json();
+      if (data.exito && Array.isArray(data.data)) {
+        setOrdenes(data.data);
+      } else {
+        console.error('Error al cargar órdenes:', data.mensaje);
+      }
+    } catch (error) {
+      console.error('Error fetching orders:', error);
+    } finally {
+      setIsRefreshing(false);
+    }
   };
+
+
+  // Estadísticas con datos reales
+  const stats = {
+    total: ordenes.length,
+    pending: ordenes.filter(o => o.status === 'pending').length,
+    valid: ordenes.filter(o => o.status === 'valid').length,
+    invalid: ordenes.filter(o => o.status === 'invalid').length
+  };
+
 
   return (
     <div className="max-w-7xl mx-auto space-y-6">
@@ -216,8 +211,8 @@ export const OrdenesAutomaticas: React.FC = () => {
         <Card className="p-4 bg-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-[#3c5661] opacity-60 mb-1">En Proceso</p>
-              <p className="font-bold text-[#882238]">{stats.processing}</p>
+              <p className="text-xs text-[#3c5661] opacity-60 mb-1">Invalidas</p>
+              <p className="font-bold text-[#882238]">{stats.invalid}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-[#882238] bg-opacity-10 flex items-center justify-center">
               <RefreshCw className="w-5 h-5 text-[#882238]" />
@@ -228,8 +223,8 @@ export const OrdenesAutomaticas: React.FC = () => {
         <Card className="p-4 bg-white">
           <div className="flex items-center justify-between">
             <div>
-              <p className="text-xs text-[#3c5661] opacity-60 mb-1">Completadas</p>
-              <p className="font-bold text-[#72be9a]">{stats.completed}</p>
+              <p className="text-xs text-[#3c5661] opacity-60 mb-1">Validada</p>
+              <p className="font-bold text-[#72be9a]">{stats.valid}</p>
             </div>
             <div className="w-10 h-10 rounded-lg bg-[#72be9a] bg-opacity-10 flex items-center justify-center">
               <CheckCircle className="w-5 h-5 text-[#72be9a]" />
@@ -251,7 +246,7 @@ export const OrdenesAutomaticas: React.FC = () => {
               className="pl-10 border-[#f4c0c2] hover:border-[#882238] focus:ring-[#882238] text-xs"
             />
           </div>
-          
+
           <div className="flex gap-2">
             <select
               value={filterStatus}
@@ -260,9 +255,9 @@ export const OrdenesAutomaticas: React.FC = () => {
             >
               <option value="all">Todos los estados</option>
               <option value="pending">Pendiente</option>
-              <option value="processing">En Proceso</option>
-              <option value="completed">Completada</option>
-              <option value="cancelled">Cancelada</option>
+              <option value="valid">Validada</option>
+              <option value="invalid">Inválida</option>
+
             </select>
 
             <Button
@@ -275,6 +270,21 @@ export const OrdenesAutomaticas: React.FC = () => {
           </div>
         </div>
       </Card>
+      {modalOpen && ordenSeleccionada && (
+        <div className="fixed inset-0 bg-black bg-opacity-30 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-lg w-96">
+            <h2 className="font-bold text-[#882238] mb-4">Confirmar Pedido Automático</h2>
+            <p className="text-sm text-[#3c5661] mb-4">
+              ¿Deseas enviar el pedido automático para la receta del paciente <strong>{ordenSeleccionada.pacienteNombre}</strong>?
+            </p>
+            <div className="flex justify-end gap-3">
+              <Button onClick={() => setModalOpen(false)} variant="outline">Cancelar</Button>
+              <Button onClick={handlePedidoAutomatico}>Confirmar</Button>
+            </div>
+          </div>
+        </div>
+      )}
+
 
       {/* Tabla de órdenes */}
       <Card className="bg-white overflow-hidden">
@@ -309,34 +319,43 @@ export const OrdenesAutomaticas: React.FC = () => {
                 </thead>
                 <tbody>
                   {filteredOrdenes.map((orden, index) => (
-                    <tr 
-                      key={orden.id}
-                      className={`border-b border-[#f4c0c2] hover:bg-[#f2ede9] transition-colors ${
-                        index % 2 === 0 ? 'bg-white' : 'bg-[#f2ede9] bg-opacity-30'
-                      }`}
+                    <tr
+                      key={orden._id}
+                      className={`border-b border-[#f4c0c2] hover:bg-[#f2ede9] transition-colors ${index % 2 === 0 ? 'bg-white' : 'bg-[#f2ede9] bg-opacity-30'
+                        }`}
                     >
                       <td className="py-4 px-4">
-                        <p className="text-xs font-medium text-[#882238]">{orden.id}</p>
+                        <p className="text-xs font-medium text-[#882238]">{orden._id}</p>
                       </td>
                       <td className="py-4 px-4">
-                        <p className="text-xs text-[#3c5661]">{orden.patientName}</p>
+                        <p className="text-xs text-[#3c5661]">{orden.pacienteNombre}</p>
                       </td>
                       <td className="py-4 px-4">
-                        <p className="text-xs text-[#3c5661]">{orden.medication}</p>
+                        <p className="text-xs text-[#3c5661]">{orden.medicamentos.map(med => med.nombre).join(', ')}</p>
                       </td>
                       <td className="py-4 px-4">
-                        <p className="text-xs text-[#3c5661] opacity-75">{orden.quantity}</p>
+                        <p className="text-xs text-[#3c5661] opacity-75">{orden.medicamentos[0]?.dosis || '-'}</p>
                       </td>
                       <td className="py-4 px-4">
-                        <PriorityIndicator priority={orden.priority as OrderPriority} />
+                        <PriorityIndicator priority={orden.pedidoAutomatico ? 'urgent' : 'normal'} />
                       </td>
                       <td className="py-4 px-4">
                         <StatusBadge status={orden.status as OrderStatus} />
                       </td>
                       <td className="py-4 px-4">
-                        <p className="text-xs text-[#3c5661] opacity-60">{orden.date}</p>
+                        <p className="text-xs text-[#3c5661] opacity-60">{new Date(orden.fechaCreacion).toLocaleString()}</p>
+                      </td>
+                      <td className="py-4 px-4">
+                        <Button
+                          className="bg-[#882238] hover:bg-[#6d1a2c] text-white text-xs px-3 py-1 rounded"
+                          onClick={() => handleAbrirModal(orden)}
+                          disabled={orden.pedidoAutomatico} // si ya se hizo pedido
+                        >
+                          {orden.pedidoAutomatico ? "Pedido enviado" : "Generar Pedido"}
+                        </Button>
                       </td>
                     </tr>
+
                   ))}
                 </tbody>
               </table>
@@ -354,8 +373,8 @@ export const OrdenesAutomaticas: React.FC = () => {
               Sistema de Órdenes Automáticas
             </p>
             <p className="text-xs text-[#3c5661] opacity-75">
-              Las órdenes se envían automáticamente a la Farmacia de Tsunade cuando se emite una prescripción médica. 
-              El sistema actualiza el estado en tiempo real según el progreso de preparación y entrega. 
+              Las órdenes se envían automáticamente a la Farmacia de Tsunade cuando se emite una prescripción médica.
+              El sistema actualiza el estado en tiempo real según el progreso de preparación y entrega.
               Las órdenes urgentes tienen prioridad en el procesamiento.
             </p>
           </div>

@@ -8,13 +8,12 @@ const path = require('path');
 const app = express();
 const server = http.createServer(app); // <-- Crea el servidor HTTP base
 const io = new Server(server, {
-  cors: { origin: "*" } // <-- Permite conexión desde cualquier cliente
+  cors: { origin: "*", methods: "*"} 
 });
-
-const port = process.env.PORT || 3000;
+const port = 3000;
 
 // ==========================
-// 🧩 Middlewares
+// 🧩 Middlewares 
 // ==========================
 const allowedOrigins = process.env.NODE_ENV === 'production'
   ? ['https://konoha-medical-corps-frontend.onrender.com']
@@ -45,6 +44,7 @@ const telemedicinaRoutes = require('./routes/telemedicina');
 const diagnosticoRoutes = require('./routes/diagnostico');
 const emergenciaRoutes = require('./routes/emergencia');
 const medicamentosRoutes = require('./routes/medicamentos');
+const medicoRoutes = require('./routes/medico');
 
 require('dotenv').config();
 
@@ -53,6 +53,7 @@ app.use('/api/telemedicina', telemedicinaRoutes(io));
 app.use('/api/diagnostico', diagnosticoRoutes);
 app.use('/api/emergencia', emergenciaRoutes(io));
 app.use('/api/medicamentos', medicamentosRoutes);
+app.use('/api/medicos', medicoRoutes);
 
 // ==========================
 // 🟢 WebSocket
@@ -73,10 +74,6 @@ io.on("connection", (socket) => {
 });
 
 // ==========================
-// 🌐 Ruta general del cliente (frontend)
-// ==========================
-
-// ==========================
 // ⚙️ Conexión a la base de datos
 // ==========================
 
@@ -90,3 +87,4 @@ mongoose.connect(process.env.MONGODB_URI)
 server.listen(port, () => {
   console.log(`🔥 Servidor Shinobi escuchando en el puerto ${port}`);
 });
+ 

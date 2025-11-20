@@ -51,12 +51,14 @@ module.exports = (io) => {
           exito: false,
           mensaje: "Faltan campos requeridos (missionId, ninjaId o vitals)"
         });*/
-      if (!ninjaId || !vitals) {
+      if (!ninjaId || typeof ninjaId !== "string" || !mongoose.Types.ObjectId.isValid(ninjaId)) {
         return res.status(400).json({
           exito: false,
-          mensaje: "Faltan campos requeridos (ninjaId o vitals)"
+          mensaje: "El ninjaId es obligatorio y debe ser un ObjectId válido"
         });
       }
+
+
 
       // Si no viene missionId, usamos uno por defecto
       const mission = missionId || "M-TEST";
@@ -105,15 +107,14 @@ module.exports = (io) => {
         .populate("ninjaId", "nombre apellido aldea rango")
         .sort({ timestamp: -1 });*/
       const registros = await Telemedicine.find({ missionId })
-        .populate("ninjaId", "nombre apellido aldea rango currentCondition") // <- esto transforma ObjectId en objeto
+        .populate("ninjaId", "nombre apellido aldea rango currentCondition", Paciente) // <- esto transforma ObjectId en objeto
         .sort({ timestamp: -1 });
 
 
       if (!registros.length) {
         return res.status(404).json({
-          exito: false,
-          mensaje: "No hay registros de telemedicina para esta misión"
-        });
+          exito: true,
+          total: 0, data: [] });
       }
 
       res.json({
@@ -153,6 +154,7 @@ module.exports = (io) => {
         // Enviar actualización en tiempo real a los clientes conectados
         io.to(registro.missionId).emit("telemedicine_update", registro);
 
+        console.log(`✅ Signos actualizados para ${registro.ninjaId?.nombre || "Desconocido"} (${estadoActual})`);
       }
     } catch (error) {
       console.error("⚠️ Error al actualizar signos vitales automáticamente:", error.message);
@@ -181,5 +183,4 @@ module.exports = (io) => {
   });
 
   return router;
-
 };

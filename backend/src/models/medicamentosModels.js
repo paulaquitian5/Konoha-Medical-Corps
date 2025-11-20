@@ -49,7 +49,7 @@ const RecetaSchema = new mongoose.Schema({
     type: Boolean,
     default: false
   },
-  // 🚨 CAMPOS AÑADIDOS PARA LA VALIDACIÓN DEL FARMACÉUTICO 🚨
+   // 🚨 CAMPOS AÑADIDOS PARA LA VALIDACIÓN DEL FARMACÉUTICO 🚨
   status: {
     type: String,
     enum: ['pending', 'valid', 'invalid'], // Solo acepta estos 3 estados
@@ -59,6 +59,6 @@ const RecetaSchema = new mongoose.Schema({
     type: String,
     default: null
   }
-
 });
+
 module.exports = mongoose.model("Receta", RecetaSchema);

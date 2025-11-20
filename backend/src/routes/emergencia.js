@@ -41,7 +41,8 @@ module.exports = (io) => {
       const saved = await alerta.save();
 
       // Emitimos la alerta a todos los médicos conectados
-      io.emit("emergencia_alert", {
+      console.log("📢 Emitiendo emergencia:", saved._id);
+      io.emit("alerta_medica", {
         alertaId: saved._id,
         patientId: saved.patientId,
         missionId: saved.missionId,

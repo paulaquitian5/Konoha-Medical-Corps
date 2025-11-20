@@ -61,7 +61,7 @@ router.get("/", async (req, res) => {
     // 💡 Recomendación: En un entorno de producción, aquí aplicarías filtros (ej: status='pending').
     // Por ahora, traemos todas las recetas.
     const recetas = await Receta.find({}).sort({ fechaCreacion: -1 });
-     const recetasConNombre = await Promise.all(
+    const recetasConNombre = await Promise.all(
       recetas.map(async (r) => {
         const paciente = await Paciente.findById(r.patientId);
         return {
@@ -70,7 +70,7 @@ router.get("/", async (req, res) => {
         };
       })
     );
-    
+
     res.json({
       exito: true,
       total: recetasConNombre.length,
@@ -144,10 +144,16 @@ router.get("/:patientId", async (req, res) => {
     const recetas = await Receta.find({ patientId: req.params.patientId }).sort({ fechaCreacion: -1 });
     const paciente = await Paciente.findById(req.params.patientId);
 
-    const recetasConNombre = recetas.map(r => ({
-      ...r._doc,
-      pacienteNombre: paciente ? paciente.nombre : "Desconocido",
-    }));
+    const recetasConNombre = await Promise.all(
+      recetas.map(async (r) => {
+        const paciente = await Paciente.findById(r.patientId);
+        return {
+          ...r._doc,
+          pacienteNombre: paciente ? paciente.nombre : "Desconocido",
+        };
+      })
+    );
+
 
     res.json({ exito: true, total: recetas.length, data: recetasConNombre });
   } catch (error) {

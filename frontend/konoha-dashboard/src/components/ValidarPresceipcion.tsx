@@ -25,6 +25,7 @@ const StatusBadge: React.FC<{ status: StatusType }> = ({ status }) => {
       icon: XCircle,
       className: 'bg-[#882238] bg-opacity-10 text-[#882238] border-[#882238]'
     }
+  
   };
 
   const config = statusConfig[status] || statusConfig.pending;
@@ -46,6 +47,22 @@ interface DetailRowProps {
   label: string;
   value: string;
 }
+interface Orden {
+  _id: string;
+  patientId: string;
+  pacienteNombre: string; // <-- agregar
+  doctorId: string;
+  medicamentos: { nombre: string; dosis?: string; duracion?: string }[];
+  observaciones: string;
+  firmaDigital: string;
+  fechaCreacion: string;
+  pedidoAutomatico: boolean;
+  status: 'pending' | 'valid' | 'invalid';
+  observacionesFarmaceutico?: string | null;
+}
+
+
+
 const doctors = [
   { id: 1, nombre: "Tsunade", firmaDigital: "tsunade-001", sello: "TS" },
   { id: 2, nombre: "Sakura Haruno", firmaDigital: "sakura-002", sello: "SH" },
@@ -67,20 +84,24 @@ const DetailRow: React.FC<DetailRowProps> = ({ icon: Icon, label, value }) => (
   </div>
 );
 
+
+
 export const ValidarPrescripcion: React.FC = () => {
   const [prescripciones, setPrescripciones] = useState<any[]>([]);
   const [selectedPrescripcion, setSelectedPrescripcion] = useState(0);
-
+  const [currentPrescripcion, setCurrentPrescripcion] = useState<Orden | null>(null);
   const [observaciones, setObservaciones] = useState('');
   const [showObservaciones, setShowObservaciones] = useState(false);
 
   // 🔥 FETCH REAL AL BACKEND
+  // Traer prescripciones al montar
   useEffect(() => {
     const fetchPrescripciones = async () => {
       try {
         const res = await fetch("http://localhost:3000/api/medicamentos");
         const data = await res.json();
         setPrescripciones(data.data);
+        setCurrentPrescripcion(data.data[0] || null);
       } catch (error) {
         console.error("Error fetching medicamentos:", error);
       }
@@ -88,6 +109,22 @@ export const ValidarPrescripcion: React.FC = () => {
 
     fetchPrescripciones();
   }, []);
+
+  // Actualizar currentPrescripcion cuando cambia la selección
+  useEffect(() => {
+    if (prescripciones.length > 0) {
+      setCurrentPrescripcion(prescripciones[selectedPrescripcion]);
+    }
+  }, [selectedPrescripcion, prescripciones]);
+
+
+  const updatePrescripcion = <K extends keyof Orden>(field: K, value: Orden[K]) => {
+    setCurrentPrescripcion((prev: Orden | null) =>
+      prev ? { ...prev, [field]: value } : null
+    );
+  };
+
+
 
   if (prescripciones.length === 0) {
     return (
@@ -97,28 +134,55 @@ export const ValidarPrescripcion: React.FC = () => {
     );
   }
 
-  const currentPrescripcion = prescripciones[selectedPrescripcion];
-
   const doctorInfo = doctors.find(
-    d => d.id === Number(currentPrescripcion.doctorId)
+    d => d.id === Number(currentPrescripcion?.doctorId)
   );
 
+
   // Adaptar medicamentos
-  const medicamentosTexto = currentPrescripcion.medicamentos
-    .map((m: any) => m.nombre)
-    .join(', ');
+  const medicamentosTexto = currentPrescripcion?.medicamentos?.map(m => m.nombre).join(', ') || '';
+  const dosis = currentPrescripcion?.medicamentos?.[0]?.dosis || "—";
+  const duracion = currentPrescripcion?.medicamentos?.[0]?.duracion || "—";
 
-  const dosis = currentPrescripcion.medicamentos[0]?.dosis || "—";
-  const duracion = currentPrescripcion.medicamentos[0]?.duracion || "—";
+  const fecha = currentPrescripcion?.fechaCreacion
+    ? new Date(currentPrescripcion.fechaCreacion).toLocaleDateString("es-CO", {
+      year: "numeric",
+      month: "long",
+      day: "numeric"
+    })
+    : '';
 
-  const fecha = new Date(currentPrescripcion.fechaCreacion)
-    .toLocaleDateString("es-CO", { year: "numeric", month: "long", day: "numeric" });
+  const handleSaveObservaciones = async () => {
+    if (!currentPrescripcion) return;
 
-  const handleSaveObservaciones = () => {
-    console.log("Observaciones guardadas:", observaciones);
-    setShowObservaciones(false);
-    setObservaciones('');
+    try {
+      const res = await fetch(`http://localhost:3000/api/medicamentos/${currentPrescripcion._id}/status`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          status: currentPrescripcion.status,
+          observacionesFarmaceutico: observaciones
+        })
+      });
+
+      const data = await res.json();
+      if (data.exito) {
+        console.log("Observaciones guardadas:", data.data);
+        // Actualizar estado local
+        setPrescripciones((prev) =>
+          prev.map((p) => p._id === currentPrescripcion._id ? data.data : p)
+        );
+        setShowObservaciones(false);
+        setObservaciones('');
+      } else {
+        console.error("Error backend:", data.mensaje);
+      }
+    } catch (error) {
+      console.error("Error al guardar observaciones:", error);
+    }
   };
+
+
 
   return (
     <div className="max-w-5xl mx-auto space-y-6">
@@ -145,20 +209,46 @@ export const ValidarPrescripcion: React.FC = () => {
         </div>
       </Card>
 
-      {/* Detalle de la Prescripción */}
-      <Card className="p-8 bg-white">
-        <div className="flex items-center justify-between mb-6">
+      <Card className="p-8 bg-white space-y-6">
+        {/* Encabezado */}
+        <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="inline-flex items-center justify-center w-10 h-10 rounded-lg bg-[#882238] bg-opacity-10">
               <FileCheck className="w-5 h-5 text-[#882238]" />
             </div>
             <div>
               <h1 className="font-bold text-[#3c5661]">Prescripción Médica</h1>
-              <p className="text-xs text-[#3c5661] opacity-60">{currentPrescripcion._id}</p>
+              <p className="text-xs text-[#3c5661] opacity-60">{currentPrescripcion?._id || '—'}</p>
             </div>
           </div>
-          <StatusBadge status={currentPrescripcion.status} />
+          {/* Estado de la Prescripción */}
+              <div className="mt-4">
+                <label className="text-xs font-medium text-[#3c5661] opacity-60 mb-1 block">
+                  Estado
+                </label>
+                <div className="flex items-center gap-2">
+                  {/* Badge que refleja el estado actual */}
+                  <StatusBadge status={currentPrescripcion?.status || 'pending'} />
+
+                  {/* Select para cambiar el estado */}
+                  <select
+                    value={currentPrescripcion?.status || ""}
+                    onChange={(e) =>
+                      currentPrescripcion &&
+                      updatePrescripcion("status", e.target.value as Orden['status'])
+                    }
+                    className="w-36 px-3 py-2 text-xs border rounded-lg focus:outline-none focus:ring-2 focus:ring-[#882238] focus:ring-opacity-30 text-[#3c5661]"
+                  >
+                    <option value="">Seleccione estado</option>
+                    <option value="valid">Válida</option>
+                    <option value="invalid">Inválida</option>
+                    <option value="pending">Pendiente</option>
+
+                  </select>
+                </div>
+              </div>
         </div>
+
 
         <Separator className="my-6" />
 
@@ -166,23 +256,27 @@ export const ValidarPrescripcion: React.FC = () => {
         <div className="mb-6">
           <h2 className="font-bold mb-4 text-[#3c5661]">Información del Paciente</h2>
           <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+
             <DetailRow
               icon={User}
               label="Nombre del Paciente"
-              value={currentPrescripcion.pacienteNombre}
+              value={currentPrescripcion?.pacienteNombre || '—'}
             />
             <DetailRow
               icon={FileCheck}
               label="ID del Paciente"
-              value={currentPrescripcion.patientId}
+              value={currentPrescripcion?.patientId || '—'}
             />
-            <DetailRow icon={Calendar} label="Fecha de emisión" value={new Date(currentPrescripcion.fechaCreacion).toLocaleString("es-CO", {
-              year: "numeric",
-              month: "long",
-              day: "numeric",
-              hour: "2-digit",
-              minute: "2-digit"
-            })} />
+            <DetailRow icon={Calendar} label="Fecha de emisión" value={
+              currentPrescripcion?.fechaCreacion
+                ? new Date(currentPrescripcion.fechaCreacion).toLocaleString("es-CO", {
+                  year: "numeric",
+                  month: "long",
+                  day: "numeric",
+                  hour: "2-digit",
+                  minute: "2-digit"
+                }) : "No disponible"}
+            />
           </div>
         </div>
 
@@ -192,7 +286,8 @@ export const ValidarPrescripcion: React.FC = () => {
         <div className="mb-6">
           <h2 className="font-bold mb-4 text-[#3c5661]">Diagnóstico Médico</h2>
           <div className="bg-[#f2ede9] rounded-lg p-4">
-            <p className="text-xs text-[#3c5661]">{currentPrescripcion.observaciones}</p>
+            <p className="text-xs text-[#3c5661]">{currentPrescripcion?.observaciones}</p>
+
           </div>
         </div>
 
@@ -211,6 +306,7 @@ export const ValidarPrescripcion: React.FC = () => {
               <div className="bg-[#f2ede9] rounded-lg p-4">
                 <p className="text-xs font-medium text-[#3c5661] opacity-60 mb-1">Dosis</p>
                 <p className="text-xs text-[#3c5661]">{dosis}</p>
+
               </div>
               <div className="bg-[#f2ede9] rounded-lg p-4">
                 <p className="text-xs font-medium text-[#3c5661] opacity-60 mb-1">Duración</p>
@@ -243,7 +339,7 @@ export const ValidarPrescripcion: React.FC = () => {
               <DetailRow
                 icon={Calendar}
                 label="Fecha de Emisión"
-                value={new Date(currentPrescripcion.fechaCreacion).toLocaleString("es-CO", {
+                value={new Date(currentPrescripcion?.fechaCreacion || "").toLocaleString("es-CO", {
                   year: "numeric",
                   month: "long",
                   day: "numeric",
@@ -251,6 +347,7 @@ export const ValidarPrescripcion: React.FC = () => {
                   minute: "2-digit"
                 })}
               />
+              
             </div>
           </div>
         </div>
@@ -307,7 +404,7 @@ export const ValidarPrescripcion: React.FC = () => {
             </div>
           )}
         </div>
-      </Card>
-    </div>
+      </Card >
+    </div >
   );
 };

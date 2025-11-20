@@ -38,7 +38,13 @@ const TelemedicineSchema = new mongoose.Schema({
   ninjaId: {
     type: mongoose.Schema.Types.ObjectId,
     ref: "Paciente",
-    required: [true, "El ninjaId (paciente) es obligatorio"]
+    required: true,
+    validate: {
+      validator: function (v) {
+        return v !== null;
+      },
+      message: "El ninjaId no puede ser null"
+    }
   },
   vitals: VitalSignsSchema,
   ubicacion: {
